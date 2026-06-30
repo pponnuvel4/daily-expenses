@@ -3,13 +3,16 @@ import Foundation
 @MainActor
 final class ExpenseStore: ObservableObject {
     @Published private(set) var expenses: [Expense] = []
+    @Published private(set) var favorites: [FavoriteExpense] = []
     @Published var selectedDate: Date
 
     private let calendar = Calendar.current
+    private var lastActiveDay: Date?
 
     init(selectedDate: Date = Calendar.current.startOfDay(for: Date())) {
         self.selectedDate = calendar.startOfDay(for: selectedDate)
         load()
+        _ = refreshForNewDayIfNeeded()
     }
 
     var expensesForSelectedDay: [Expense] {
@@ -23,10 +26,7 @@ final class ExpenseStore: ObservableObject {
     }
 
     var monthTotal: Double {
-        guard let interval = calendar.dateInterval(of: .month, for: selectedDate) else { return 0 }
-        return expenses
-            .filter { $0.date >= interval.start && $0.date < interval.end }
-            .reduce(0) { $0 + $1.amount }
+        totalForMonth(containing: selectedDate)
     }
 
     var selectedMonthTitle: String {
@@ -59,6 +59,12 @@ final class ExpenseStore: ObservableObject {
         persist()
     }
 
+    func updateExpense(_ expense: Expense) {
+        guard let index = expenses.firstIndex(where: { $0.id == expense.id }) else { return }
+        expenses[index] = expense
+        persist()
+    }
+
     func deleteExpenses(at offsets: IndexSet, from list: [Expense]) {
         let ids = offsets.map { list[$0].id }
         expenses.removeAll { ids.contains($0.id) }
@@ -70,11 +76,107 @@ final class ExpenseStore: ObservableObject {
         selectedDate = calendar.startOfDay(for: newDate)
     }
 
+    func goToToday() {
+        selectedDate = calendar.startOfDay(for: Date())
+    }
+
+    var isViewingToday: Bool {
+        calendar.isDateInToday(selectedDate)
+    }
+
+    @discardableResult
+    func refreshForNewDayIfNeeded() -> Bool {
+        let today = calendar.startOfDay(for: Date())
+
+        if let lastActiveDay {
+            let isNewDay = !calendar.isDate(lastActiveDay, inSameDayAs: today)
+            if isNewDay {
+                selectedDate = today
+            }
+            self.lastActiveDay = today
+            persist()
+            return isNewDay
+        }
+
+        self.lastActiveDay = today
+        selectedDate = today
+        persist()
+        return false
+    }
+
+    func addToFavorites(from expense: Expense) {
+        let title = expense.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = title.isEmpty ? expense.category.title : title
+        guard !favorites.contains(where: { $0.title.caseInsensitiveCompare(name) == .orderedSame }) else {
+            return
+        }
+
+        favorites.insert(
+            FavoriteExpense(title: name, amount: expense.amount, category: expense.category),
+            at: 0
+        )
+        persist()
+    }
+
+    func addFavoriteToDay(_ favorite: FavoriteExpense) {
+        addExpense(
+            title: favorite.title,
+            amount: favorite.amount,
+            category: favorite.category,
+            note: nil
+        )
+    }
+
+    func removeFavorite(_ favorite: FavoriteExpense) {
+        favorites.removeAll { $0.id == favorite.id }
+        persist()
+    }
+
+    func categoryTotals(forMonthContaining date: Date) -> [CategoryTotal] {
+        let monthTotal = totalForMonth(containing: date)
+        guard monthTotal > 0 else { return [] }
+
+        let monthExpenses = expensesForMonth(containing: date)
+        var amounts: [ExpenseCategory: Double] = [:]
+        for expense in monthExpenses {
+            amounts[expense.category, default: 0] += expense.amount
+        }
+
+        return amounts
+            .map { category, amount in
+                CategoryTotal(
+                    id: category,
+                    category: category,
+                    amount: amount,
+                    percentage: (amount / monthTotal) * 100
+                )
+            }
+            .sorted { $0.amount > $1.amount }
+    }
+
+    private func totalForMonth(containing date: Date) -> Double {
+        expensesForMonth(containing: date).reduce(0) { $0 + $1.amount }
+    }
+
+    private func expensesForMonth(containing date: Date) -> [Expense] {
+        guard let interval = calendar.dateInterval(of: .month, for: date) else { return [] }
+        return expenses.filter { $0.date >= interval.start && $0.date < interval.end }
+    }
+
     private func load() {
-        expenses = ExpensePersistence.load().expenses
+        let appData = ExpensePersistence.load()
+        expenses = appData.expenses
+        favorites = appData.favorites
+        lastActiveDay = appData.lastActiveDay.map { calendar.startOfDay(for: $0) }
     }
 
     private func persist() {
-        ExpensePersistence.save(ExpenseAppData(expenses: expenses))
+        ExpensePersistence.save(
+            ExpenseAppData(
+                expenses: expenses,
+                favorites: favorites,
+                lastActiveDay: lastActiveDay
+            )
+        )
     }
 }

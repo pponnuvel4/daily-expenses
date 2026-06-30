@@ -1,0 +1,316 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D10000000000000000000001 /* DailyExpensesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000001 /* DailyExpensesApp.swift */; };
+		D10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000002 /* ContentView.swift */; };
+		D10000000000000000000003 /* ExpenseRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003 /* ExpenseRowView.swift */; };
+		D10000000000000000000004 /* EditExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000004 /* EditExpenseView.swift */; };
+		D10000000000000000000005 /* MonthSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005 /* MonthSummaryView.swift */; };
+		D10000000000000000000006 /* FavoritesBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000006 /* FavoritesBarView.swift */; };
+		D10000000000000000000007 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000007 /* Expense.swift */; };
+		D10000000000000000000008 /* ExpenseCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000008 /* ExpenseCategory.swift */; };
+		D10000000000000000000009 /* FavoriteExpense.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000009 /* FavoriteExpense.swift */; };
+		D10000000000000000000010 /* ExpenseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000010 /* ExpenseStore.swift */; };
+		D10000000000000000000011 /* ExpensePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000011 /* ExpensePersistence.swift */; };
+		D10000000000000000000012 /* CurrencyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000012 /* CurrencyFormatter.swift */; };
+		D10000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000013 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D20000000000000000000001 /* DailyExpensesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyExpensesApp.swift; sourceTree = "<group>"; };
+		D20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D20000000000000000000003 /* ExpenseRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseRowView.swift; sourceTree = "<group>"; };
+		D20000000000000000000004 /* EditExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditExpenseView.swift; sourceTree = "<group>"; };
+		D20000000000000000000005 /* MonthSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthSummaryView.swift; sourceTree = "<group>"; };
+		D20000000000000000000006 /* FavoritesBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesBarView.swift; sourceTree = "<group>"; };
+		D20000000000000000000007 /* Expense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expense.swift; sourceTree = "<group>"; };
+		D20000000000000000000008 /* ExpenseCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseCategory.swift; sourceTree = "<group>"; };
+		D20000000000000000000009 /* FavoriteExpense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteExpense.swift; sourceTree = "<group>"; };
+		D20000000000000000000010 /* ExpenseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseStore.swift; sourceTree = "<group>"; };
+		D20000000000000000000011 /* ExpensePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensePersistence.swift; sourceTree = "<group>"; };
+		D20000000000000000000012 /* CurrencyFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyFormatter.swift; sourceTree = "<group>"; };
+		D20000000000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D30000000000000000000001 /* DailyExpenses.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyExpenses.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D40000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D50000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				D50000000000000000000002 /* DailyExpenses */,
+				D50000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D50000000000000000000002 /* DailyExpenses */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000001 /* DailyExpensesApp.swift */,
+				D50000000000000000000004 /* Models */,
+				D50000000000000000000005 /* ViewModels */,
+				D50000000000000000000006 /* Views */,
+				D50000000000000000000007 /* Utilities */,
+				D20000000000000000000013 /* Assets.xcassets */,
+			);
+			path = DailyExpenses;
+			sourceTree = "<group>";
+		};
+		D50000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D30000000000000000000001 /* DailyExpenses.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D50000000000000000000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000007 /* Expense.swift */,
+				D20000000000000000000008 /* ExpenseCategory.swift */,
+				D20000000000000000000009 /* FavoriteExpense.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D50000000000000000000005 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000010 /* ExpenseStore.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D50000000000000000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000002 /* ContentView.swift */,
+				D20000000000000000000003 /* ExpenseRowView.swift */,
+				D20000000000000000000004 /* EditExpenseView.swift */,
+				D20000000000000000000005 /* MonthSummaryView.swift */,
+				D20000000000000000000006 /* FavoritesBarView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D50000000000000000000007 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000011 /* ExpensePersistence.swift */,
+				D20000000000000000000012 /* CurrencyFormatter.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D60000000000000000000001 /* DailyExpenses */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D80000000000000000000002 /* Build configuration list for PBXNativeTarget "DailyExpenses" */;
+			buildPhases = (
+				D70000000000000000000001 /* Sources */,
+				D40000000000000000000001 /* Frameworks */,
+				D70000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DailyExpenses;
+			productName = DailyExpenses;
+			productReference = D30000000000000000000001 /* DailyExpenses.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D90000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					D60000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = D80000000000000000000001 /* Build configuration list for PBXProject "DailyExpenses" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D50000000000000000000001;
+			productRefGroup = D50000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D60000000000000000000001 /* DailyExpenses */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D70000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D10000000000000000000013 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D70000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D10000000000000000000001 /* DailyExpensesApp.swift in Sources */,
+				D10000000000000000000002 /* ContentView.swift in Sources */,
+				D10000000000000000000003 /* ExpenseRowView.swift in Sources */,
+				D10000000000000000000004 /* EditExpenseView.swift in Sources */,
+				D10000000000000000000005 /* MonthSummaryView.swift in Sources */,
+				D10000000000000000000006 /* FavoritesBarView.swift in Sources */,
+				D10000000000000000000007 /* Expense.swift in Sources */,
+				D10000000000000000000008 /* ExpenseCategory.swift in Sources */,
+				D10000000000000000000009 /* FavoriteExpense.swift in Sources */,
+				D10000000000000000000010 /* ExpenseStore.swift in Sources */,
+				D10000000000000000000011 /* ExpensePersistence.swift in Sources */,
+				D10000000000000000000012 /* CurrencyFormatter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = C9BC429226;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = C9BC429226;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pponnuvel4.DailyExpenses;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pponnuvel4.DailyExpenses;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D80000000000000000000001 /* Build configuration list for PBXProject "DailyExpenses" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C10000000000000000000001 /* Debug */,
+				C10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D80000000000000000000002 /* Build configuration list for PBXNativeTarget "DailyExpenses" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C10000000000000000000003 /* Debug */,
+				C10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D90000000000000000000001 /* Project object */;
+}
