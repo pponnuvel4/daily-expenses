@@ -133,12 +133,23 @@ struct ContentView: View {
                 .onSubmit { focusedField = .amount }
                 .onTapGesture { focusedField = .title }
 
-            TextField("Amount", text: $newAmountText)
+            TextField(amountFieldPlaceholder, text: $newAmountText)
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .amount)
 
             QuantityInputFields(quantityText: $newQuantityText, unit: $newUnit)
+
+            if let computedTotal = computedLineTotal {
+                HStack {
+                    Text("Line total")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(CurrencyFormatter.string(from: computedTotal))
+                        .font(.subheadline.weight(.semibold))
+                }
+            }
 
             if scope.showsCategoryPicker {
                 Picker("Category", selection: $newCategory) {
@@ -291,6 +302,23 @@ struct ContentView: View {
         return "Version \(version) (\(build))"
     }
 
+    private var parsedQuantity: Double? {
+        QuantityFormatter.parse(newQuantityText)
+    }
+
+    private var amountFieldPlaceholder: String {
+        QuantityFormatter.amountFieldLabel(
+            hasQuantity: parsedQuantity != nil,
+            unit: QuantityFormatter.normalizedUnit(newUnit)
+        )
+    }
+
+    private var computedLineTotal: Double? {
+        guard let rate = parsedAmount else { return nil }
+        guard let quantity = parsedQuantity else { return nil }
+        return QuantityFormatter.totalAmount(unitPrice: rate, quantity: quantity)
+    }
+
     private var parsedAmount: Double? {
         let normalized = newAmountText.replacingOccurrences(of: ",", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -299,14 +327,16 @@ struct ContentView: View {
     }
 
     private func addExpense(refocusKeyboard: Bool) {
-        guard let amount = parsedAmount else { return }
+        guard let enteredPrice = parsedAmount else { return }
+        let quantity = parsedQuantity
+        let total = QuantityFormatter.totalAmount(unitPrice: enteredPrice, quantity: quantity)
 
         store.addExpense(
             title: newTitle,
-            amount: amount,
+            amount: total,
             category: scope.showsCategoryPicker ? newCategory : scope.defaultCategory,
             note: newNote,
-            quantity: QuantityFormatter.parse(newQuantityText),
+            quantity: quantity,
             unit: QuantityFormatter.normalizedUnit(newUnit)
         )
         clearAddForm()
