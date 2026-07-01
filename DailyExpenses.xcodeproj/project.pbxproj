@@ -30,6 +30,7 @@
 		D10000000000000000000021 /* QuantityInputFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000021 /* QuantityInputFields.swift */; };
 		D10000000000000000000022 /* ExpensePriceEntryMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000022 /* ExpensePriceEntryMode.swift */; };
 		D10000000000000000000023 /* QuantityPriceInputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000023 /* QuantityPriceInputSection.swift */; };
+		D10000000000000000000024 /* AddExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000024 /* AddExpenseView.swift */; };
 		D10000000000000000000025 /* MoneyFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000025 /* MoneyFlow.swift */; };
 /* End PBXBuildFile section */
 
@@ -292,7 +293,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -317,7 +318,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
