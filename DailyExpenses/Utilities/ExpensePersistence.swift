@@ -4,6 +4,7 @@ struct ExpenseAppData: Codable {
     var expenses: [Expense] = []
     var favorites: [FavoriteExpense] = []
     var lastActiveDay: Date?
+    var settings: AppSettings = AppSettings()
 }
 
 enum ExpensePersistence {

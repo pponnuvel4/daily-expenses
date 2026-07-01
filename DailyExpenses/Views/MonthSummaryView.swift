@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct MonthSummaryView: View {
     @Environment(ExpenseStore.self) private var store
@@ -15,6 +16,10 @@ struct MonthSummaryView: View {
 
     private var monthMoneyExpenses: [Expense] {
         store.expensesForReport(type: .selectedMonthMoney, on: store.selectedDate)
+    }
+
+    private var dailyTrend: [DailySpendingTotal] {
+        store.dailyTotalsForMonth(containing: store.selectedDate, category: scope.categoryFilter)
     }
 
     var body: some View {
@@ -108,6 +113,24 @@ struct MonthSummaryView: View {
             LabeledContent("Month", value: store.selectedMonthTitle)
             LabeledContent("Total spent", value: CurrencyFormatter.string(from: monthTotal))
                 .font(.headline)
+
+            if scope == .daily, let progress = store.budgetProgress(forMonthContaining: store.selectedDate) {
+                ProgressView(value: min(progress.spent, progress.budget), total: progress.budget)
+                LabeledContent("Budget", value: CurrencyFormatter.string(from: progress.budget))
+                LabeledContent("Remaining", value: CurrencyFormatter.string(from: progress.remaining))
+            }
+        }
+
+        if !totals.isEmpty && !scope.isMoneyScope {
+            Section("Spending chart") {
+                MonthSpendingChartView(totals: totals)
+            }
+        }
+
+        if !dailyTrend.isEmpty && !scope.isMoneyScope {
+            Section("Daily trend") {
+                MonthTrendChartView(dailyTotals: dailyTrend)
+            }
         }
 
         if totals.isEmpty {

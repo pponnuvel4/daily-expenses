@@ -6,7 +6,7 @@ struct ExportReportView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var selectedReportType: ExpenseReportType
-    @State private var pdfURL: URL?
+    @State private var shareURL: URL?
     @State private var showShareSheet = false
     @State private var errorMessage: String?
 
@@ -35,18 +35,25 @@ struct ExportReportView: View {
                         .font(.headline)
                 }
 
-                Section {
+                Section("Export") {
                     Button {
                         generateAndSharePDF()
                     } label: {
-                        Label("Create PDF and Share", systemImage: "doc.richtext")
+                        Label("Export PDF", systemImage: "doc.richtext")
+                    }
+                    .disabled(reportExpenses.isEmpty)
+
+                    Button {
+                        generateAndShareCSV()
+                    } label: {
+                        Label("Export CSV", systemImage: "tablecells")
                     }
                     .disabled(reportExpenses.isEmpty)
                 } footer: {
-                    Text("Creates a PDF you can save to Files, print, or send by message or email.")
+                    Text("PDF is best for sharing. CSV opens in Excel or Google Sheets.")
                 }
             }
-            .navigationTitle("Export PDF")
+            .navigationTitle("Export Report")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -54,11 +61,11 @@ struct ExportReportView: View {
                 }
             }
             .sheet(isPresented: $showShareSheet, onDismiss: cleanupTemporaryFile) {
-                if let pdfURL {
-                    ShareSheet(items: [pdfURL])
+                if let shareURL {
+                    ShareSheet(items: [shareURL])
                 }
             }
-            .alert("Could Not Create PDF", isPresented: Binding(
+            .alert("Export Failed", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
@@ -104,14 +111,27 @@ struct ExportReportView: View {
             return
         }
 
+        shareFile(data: data, fileExtension: "pdf")
+    }
+
+    private func generateAndShareCSV() {
+        let csv = ExpenseCSVExporter.makeCSV(expenses: reportExpenses, reportTitle: reportTitle)
+        guard let data = csv.data(using: .utf8) else {
+            errorMessage = "CSV generation failed."
+            return
+        }
+        shareFile(data: data, fileExtension: "csv")
+    }
+
+    private func shareFile(data: Data, fileExtension: String) {
         cleanupTemporaryFile()
 
-        let fileName = "Expense-Report-\(selectedReportType.rawValue)-\(Int(Date().timeIntervalSince1970)).pdf"
+        let fileName = "Expense-Report-\(selectedReportType.rawValue)-\(Int(Date().timeIntervalSince1970)).\(fileExtension)"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
 
         do {
             try data.write(to: url, options: .atomic)
-            pdfURL = url
+            shareURL = url
             showShareSheet = true
         } catch {
             errorMessage = error.localizedDescription
@@ -119,9 +139,9 @@ struct ExportReportView: View {
     }
 
     private func cleanupTemporaryFile() {
-        if let pdfURL {
-            try? FileManager.default.removeItem(at: pdfURL)
+        if let shareURL {
+            try? FileManager.default.removeItem(at: shareURL)
         }
-        pdfURL = nil
+        shareURL = nil
     }
 }

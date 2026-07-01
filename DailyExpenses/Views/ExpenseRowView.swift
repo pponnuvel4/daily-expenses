@@ -5,6 +5,7 @@ struct ExpenseRowView: View {
     var onTap: (() -> Void)?
     var onAddFavorite: (() -> Void)?
     var onToggleCompleted: (() -> Void)?
+    var onDuplicate: (() -> Void)?
 
     var body: some View {
         Button {
@@ -77,6 +78,14 @@ struct ExpenseRowView: View {
                             systemImage: expense.isMoneyCompleted ? "arrow.uturn.backward.circle" : "checkmark.circle"
                         )
                     }
+                }
+            }
+
+            if let onDuplicate {
+                Button {
+                    onDuplicate()
+                } label: {
+                    Label("Duplicate", systemImage: "plus.square.on.square")
                 }
             }
 

@@ -7,6 +7,7 @@ final class ExpenseStore {
     private(set) var expenses: [Expense] = []
     private(set) var favorites: [FavoriteExpense] = []
     var selectedDate: Date
+    var settings: AppSettings = AppSettings()
 
     private let calendar = Calendar.current
     private var lastActiveDay: Date?
@@ -155,6 +156,99 @@ final class ExpenseStore {
         updateExpense(updated)
     }
 
+    func duplicateExpense(_ expense: Expense) {
+        addExpense(
+            title: expense.title,
+            amount: expense.amount,
+            category: expense.category,
+            note: expense.note,
+            quantity: expense.quantity,
+            unit: expense.unit,
+            moneyFlow: expense.moneyFlow
+        )
+    }
+
+    func outstandingMoneyEntries() -> [Expense] {
+        expenses
+            .filter { $0.category == .money && !$0.isMoneyCompleted }
+            .sorted { $0.date > $1.date }
+    }
+
+    func personMoneySummaries() -> [PersonMoneySummary] {
+        let grouped = Dictionary(grouping: outstandingMoneyEntries()) { $0.displayTitle.lowercased() }
+
+        return grouped.map { key, entries in
+            let name = entries.first?.displayTitle ?? key
+            let given = entries.filter { $0.resolvedMoneyFlow == .given }.reduce(0) { $0 + $1.amount }
+            let borrowed = entries.filter { $0.resolvedMoneyFlow == .borrowed }.reduce(0) { $0 + $1.amount }
+            return PersonMoneySummary(
+                id: key,
+                name: name,
+                givenOutstanding: given,
+                borrowedOutstanding: borrowed,
+                entries: entries
+            )
+        }
+        .sorted { ($0.givenOutstanding + $0.borrowedOutstanding) > ($1.givenOutstanding + $1.borrowedOutstanding) }
+    }
+
+    func allOutstandingGivenTotal() -> Double {
+        outstandingMoneyEntries()
+            .filter { $0.resolvedMoneyFlow == .given }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    func allOutstandingBorrowedTotal() -> Double {
+        outstandingMoneyEntries()
+            .filter { $0.resolvedMoneyFlow == .borrowed }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    func allOutstandingNetTotal() -> Double {
+        allOutstandingBorrowedTotal() - allOutstandingGivenTotal()
+    }
+
+    func weekTotal(forWeekContaining date: Date, category: ExpenseCategory?) -> Double {
+        guard let interval = calendar.dateInterval(of: .weekOfYear, for: date) else { return 0 }
+        return expenses
+            .filter { expense in
+                expense.date >= interval.start
+                    && expense.date < interval.end
+                    && matchesCategory(expense.category, filter: category)
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    func dailyTotalsForMonth(containing date: Date, category: ExpenseCategory?) -> [DailySpendingTotal] {
+        guard let interval = calendar.dateInterval(of: .month, for: date) else { return [] }
+
+        var amountsByDay: [Date: Double] = [:]
+        for expense in expensesForMonth(containing: date, category: category) {
+            let day = calendar.startOfDay(for: expense.date)
+            amountsByDay[day, default: 0] += expense.amount
+        }
+
+        return amountsByDay
+            .map { day, amount in
+                DailySpendingTotal(
+                    id: day,
+                    label: day.formatted(.dateTime.day()),
+                    amount: amount
+                )
+            }
+            .sorted { $0.id < $1.id }
+    }
+
+    func budgetProgress(forMonthContaining date: Date) -> (spent: Double, budget: Double, remaining: Double)? {
+        guard let budget = settings.monthlyBudget, budget > 0 else { return nil }
+        let spent = monthTotal(forMonthContaining: date, category: nil)
+        return (spent, budget, max(0, budget - spent))
+    }
+
+    func saveSettings() {
+        persist()
+    }
+
     func updateExpense(_ expense: Expense) {
         guard let index = expenses.firstIndex(where: { $0.id == expense.id }) else { return }
         expenses[index] = expense
@@ -301,6 +395,7 @@ final class ExpenseStore {
         let appData = ExpensePersistence.load()
         expenses = appData.expenses
         favorites = appData.favorites
+        settings = appData.settings
         lastActiveDay = appData.lastActiveDay.map { calendar.startOfDay(for: $0) }
     }
 
@@ -309,7 +404,8 @@ final class ExpenseStore {
             ExpenseAppData(
                 expenses: expenses,
                 favorites: favorites,
-                lastActiveDay: lastActiveDay
+                lastActiveDay: lastActiveDay,
+                settings: settings
             )
         )
     }
