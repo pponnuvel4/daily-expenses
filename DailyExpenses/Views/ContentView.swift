@@ -3,16 +3,16 @@ import SwiftUI
 struct ContentView: View {
     private enum AddField: Hashable {
         case title
-        case amount
         case note
     }
 
     let scope: ExpenseTrackerScope
     @ObservedObject var store: ExpenseStore
     @State private var newTitle = ""
-    @State private var newAmountText = ""
+    @State private var newPriceText = ""
     @State private var newQuantityText = ""
     @State private var newUnit = ""
+    @State private var priceEntryMode: ExpensePriceEntryMode = .ratePerUnit
     @State private var newCategory: ExpenseCategory
     @State private var newNote = ""
     @State private var showDatePicker = false
@@ -131,33 +131,14 @@ struct ContentView: View {
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .title)
                 .submitLabel(.next)
-                .onSubmit { focusedField = .amount }
                 .onTapGesture { focusedField = .title }
 
-            QuantityInputFields(quantityText: $newQuantityText, unit: $newUnit)
-
-            TextField(amountFieldPlaceholder, text: $newAmountText)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-                .focused($focusedField, equals: .amount)
-
-            if usesRatePricing {
-                Text("Enter price per \(displayUnit), not the full total.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if let computedTotal = computedLineTotal {
-                HStack {
-                    Text("Line total")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(CurrencyFormatter.string(from: computedTotal))
-                        .font(.subheadline.weight(.semibold))
-                }
-            }
+            QuantityPriceInputSection(
+                quantityText: $newQuantityText,
+                unit: $newUnit,
+                priceText: $newPriceText,
+                entryMode: $priceEntryMode
+            )
 
             if scope.showsCategoryPicker {
                 Picker("Category", selection: $newCategory) {
@@ -179,7 +160,7 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)
-            .disabled(parsedAmount == nil)
+            .disabled(parsedPrice == nil)
         }
         .padding()
         .background(.bar)
@@ -314,39 +295,18 @@ struct ContentView: View {
         QuantityFormatter.parse(newQuantityText)
     }
 
-    private var displayUnit: String {
-        QuantityFormatter.normalizedUnit(newUnit) ?? scope.defaultUnit
-    }
-
-    private var usesRatePricing: Bool {
-        parsedQuantity != nil || (scope == .farming && !displayUnit.isEmpty)
-    }
-
-    private var amountFieldPlaceholder: String {
-        QuantityFormatter.amountFieldLabel(
-            hasQuantity: parsedQuantity != nil,
-            unit: displayUnit.isEmpty ? nil : displayUnit,
-            preferRateLabel: scope == .farming
-        )
-    }
-
-    private var computedLineTotal: Double? {
-        guard let rate = parsedAmount else { return nil }
-        guard let quantity = parsedQuantity else { return nil }
-        return QuantityFormatter.totalAmount(unitPrice: rate, quantity: quantity)
-    }
-
-    private var parsedAmount: Double? {
-        let normalized = newAmountText.replacingOccurrences(of: ",", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !normalized.isEmpty, let value = Double(normalized), value > 0 else { return nil }
-        return value
+    private var parsedPrice: Double? {
+        QuantityFormatter.parse(newPriceText)
     }
 
     private func addExpense(refocusKeyboard: Bool) {
-        guard let enteredPrice = parsedAmount else { return }
+        guard let price = parsedPrice else { return }
         let quantity = parsedQuantity
-        let total = QuantityFormatter.totalAmount(unitPrice: enteredPrice, quantity: quantity)
+        let total = QuantityFormatter.resolveTotal(
+            price: price,
+            quantity: quantity,
+            mode: quantity == nil ? .total : priceEntryMode
+        )
 
         store.addExpense(
             title: newTitle,
@@ -369,11 +329,12 @@ struct ContentView: View {
 
     private func clearAddForm() {
         newTitle = ""
-        newAmountText = ""
+        newPriceText = ""
         newQuantityText = ""
         newUnit = scope.defaultUnit
         newNote = ""
         newCategory = scope.defaultCategory
+        priceEntryMode = .ratePerUnit
         focusedField = nil
     }
 }
