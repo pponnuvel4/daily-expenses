@@ -69,7 +69,6 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(scope.title)
-            .navigationSubtitle(appVersionLabel)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
@@ -187,6 +186,9 @@ struct ContentView: View {
                     }
                     .font(.caption.weight(.semibold))
                 }
+                Text(appVersionLabel)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
 
             Spacer()
