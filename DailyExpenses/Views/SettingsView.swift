@@ -5,6 +5,10 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var budgetText = ""
 
+    private var monthlySpent: Double {
+        store.monthTotal(forMonthContaining: store.selectedDate, category: nil)
+    }
+
     var body: some View {
         @Bindable var store = store
 
@@ -16,7 +20,7 @@ struct SettingsView: View {
                     Text("Lock the app when it goes to the background.")
                 }
 
-                Section("Monthly Budget") {
+                Section {
                     TextField("Budget amount (optional)", text: $budgetText)
                         .keyboardType(.decimalPad)
                         .onAppear {
@@ -29,17 +33,20 @@ struct SettingsView: View {
                         }
 
                     if let budget = store.settings.monthlyBudget, budget > 0 {
-                        let spent = store.monthTotal(forMonthContaining: store.selectedDate, category: nil)
-                        LabeledContent("Spent this month", value: CurrencyFormatter.string(from: spent))
-                        LabeledContent("Remaining", value: CurrencyFormatter.string(from: max(0, budget - spent)))
+                        LabeledContent("Spent this month", value: CurrencyFormatter.string(from: monthlySpent))
+                        LabeledContent("Remaining", value: CurrencyFormatter.string(from: max(0, budget - monthlySpent)))
                     }
+                } header: {
+                    Text("Monthly Budget")
                 } footer: {
                     Text("Set a monthly spending limit. Progress appears in the month summary on the Daily tab.")
                 }
 
-                Section("About") {
+                Section {
                     LabeledContent("Version", value: "2.1 (21)")
                     LabeledContent("Total entries", value: "\(store.expenses.count)")
+                } header: {
+                    Text("About")
                 }
             }
             .navigationTitle("Settings")

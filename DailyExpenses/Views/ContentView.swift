@@ -60,157 +60,186 @@ struct ContentView: View {
         }
     }
 
+    private var thisWeekTotal: Double {
+        store.weekTotal(forWeekContaining: store.selectedDate, category: nil)
+    }
+
+    private var lastWeekTotal: Double {
+        let lastWeekDate = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: store.selectedDate) ?? store.selectedDate
+        return store.weekTotal(forWeekContaining: lastWeekDate, category: nil)
+    }
+
     var body: some View {
         NavigationStack {
-            List {
+            mainList
+        }
+    }
+
+    private var mainList: some View {
+        List {
+            Section {
+                dateNavigationBar
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+
+            Section {
+                if scope.isMoneyScope {
+                    moneySummaryBanner
+                } else {
+                    summaryBanner
+                }
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(scope.listBannerColor)
+
+            if !scopedFavorites.isEmpty {
                 Section {
-                    dateNavigationBar
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-
-                Section {
-                    if scope.isMoneyScope {
-                        moneySummaryBanner
-                    } else {
-                        summaryBanner
+                    FavoritesBarView(favorites: scopedFavorites) { favorite in
+                        store.addFavoriteToDay(favorite)
+                    } onRemove: { favorite in
+                        store.removeFavorite(favorite)
                     }
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(scope.listBannerColor)
-
-                if !scopedFavorites.isEmpty {
-                    Section {
-                        FavoritesBarView(favorites: scopedFavorites) { favorite in
-                            store.addFavoriteToDay(favorite)
-                        } onRemove: { favorite in
-                            store.removeFavorite(favorite)
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                }
-
-                Section {
-                    if filteredExpenses.isEmpty {
-                        emptyState
-                            .listRowBackground(Color.clear)
-                    } else {
-                        ForEach(filteredExpenses) { expense in
-                            ExpenseRowView(
-                                expense: expense,
-                                onTap: { expenseToEdit = expense },
-                                onAddFavorite: { store.addToFavorites(from: expense) },
-                                onToggleCompleted: scope.isMoneyScope
-                                    ? { store.toggleMoneyCompleted(for: expense) }
-                                    : nil,
-                                onDuplicate: { store.duplicateExpense(expense) }
-                            )
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                if scope.isMoneyScope, let flow = expense.resolvedMoneyFlow {
-                                    Button {
-                                        store.toggleMoneyCompleted(for: expense)
-                                    } label: {
-                                        Label(
-                                            flow.markCompletedLabel(isCompleted: expense.isMoneyCompleted),
-                                            systemImage: expense.isMoneyCompleted ? "arrow.uturn.backward" : "checkmark"
-                                        )
-                                    }
-                                    .tint(expense.isMoneyCompleted ? .orange : .green)
-                                }
-                            }
-                        }
-                        .onDelete { offsets in
-                            store.deleteExpenses(at: offsets, from: filteredExpenses)
-                        }
-                    }
-                } header: {
-                    Text(scope.isMoneyScope ? "Entries" : "Expenses")
-                }
+                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             }
-            .listStyle(.insetGrouped)
-            .searchable(text: $searchText, prompt: scope.isMoneyScope ? "Search people or notes" : "Search expenses")
-            .navigationTitle(scope.title)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 12) {
-                        if scope == .daily {
-                            Button {
-                                showSettings = true
-                            } label: {
-                                Image(systemName: "gearshape.fill")
-                            }
-                            .accessibilityLabel("Settings")
-                        }
 
-                        Button {
-                            showMonthSummary = true
-                        } label: {
-                            Image(systemName: "chart.bar.fill")
-                        }
-                        .accessibilityLabel("Month summary")
+            expensesSection
+        }
+        .listStyle(.insetGrouped)
+        .searchable(text: $searchText, prompt: scope.isMoneyScope ? "Search people or notes" : "Search expenses")
+        .navigationTitle(scope.title)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                leadingToolbar
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                trailingToolbar
+            }
+        }
+        .sheet(isPresented: $showAddExpense) {
+            AddExpenseView(scope: scope)
+        }
+        .sheet(isPresented: $showDatePicker) {
+            datePickerSheet
+        }
+        .sheet(isPresented: $showMonthSummary) {
+            MonthSummaryView(scope: scope)
+        }
+        .sheet(isPresented: $showExportReport) {
+            ExportReportView(defaultReportType: defaultReportType)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .sheet(isPresented: $showOutstandingMoney) {
+            OutstandingMoneyView()
+        }
+        .sheet(item: $expenseToEdit) { expense in
+            EditExpenseView(
+                expense: expense,
+                lockedCategory: scope.categoryFilter,
+                showsQuantityFields: scope.showsQuantityFields,
+                isMoneyScope: scope.isMoneyScope
+            ) { updated in
+                store.updateExpense(updated)
+            }
+        }
+    }
 
-                        if scope.isMoneyScope {
-                            Button {
-                                showOutstandingMoney = true
-                            } label: {
-                                Image(systemName: "list.bullet.rectangle")
-                            }
-                            .accessibilityLabel("All outstanding money")
-                        }
-                    }
+    @ViewBuilder
+    private var expensesSection: some View {
+        Section {
+            if filteredExpenses.isEmpty {
+                emptyState
+                    .listRowBackground(Color.clear)
+            } else {
+                ForEach(filteredExpenses) { expense in
+                    expenseRow(for: expense)
                 }
-
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        showAddExpense = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel("Add expense")
-
-                    Button {
-                        showExportReport = true
-                    } label: {
-                        Image(systemName: "doc.richtext")
-                    }
-                    .accessibilityLabel("Export PDF report")
-
-                    Button {
-                        showDatePicker = true
-                    } label: {
-                        Image(systemName: "calendar")
-                    }
-                    .accessibilityLabel("Pick date")
+                .onDelete { offsets in
+                    store.deleteExpenses(at: offsets, from: filteredExpenses)
                 }
             }
-            .sheet(isPresented: $showAddExpense) {
-                AddExpenseView(scope: scope)
-            }
-            .sheet(isPresented: $showDatePicker) {
-                datePickerSheet
-            }
-            .sheet(isPresented: $showMonthSummary) {
-                MonthSummaryView(scope: scope)
-            }
-            .sheet(isPresented: $showExportReport) {
-                ExportReportView(defaultReportType: defaultReportType)
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
-            .sheet(isPresented: $showOutstandingMoney) {
-                OutstandingMoneyView()
-            }
-            .sheet(item: $expenseToEdit) { expense in
-                EditExpenseView(
-                    expense: expense,
-                    lockedCategory: scope.categoryFilter,
-                    showsQuantityFields: scope.showsQuantityFields,
-                    isMoneyScope: scope.isMoneyScope
-                ) { updated in
-                    store.updateExpense(updated)
+        } header: {
+            Text(scope.isMoneyScope ? "Entries" : "Expenses")
+        }
+    }
+
+    private func expenseRow(for expense: Expense) -> some View {
+        ExpenseRowView(
+            expense: expense,
+            onTap: { expenseToEdit = expense },
+            onAddFavorite: { store.addToFavorites(from: expense) },
+            onToggleCompleted: scope.isMoneyScope ? { store.toggleMoneyCompleted(for: expense) } : nil,
+            onDuplicate: { store.duplicateExpense(expense) }
+        )
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            if scope.isMoneyScope, let flow = expense.resolvedMoneyFlow {
+                Button {
+                    store.toggleMoneyCompleted(for: expense)
+                } label: {
+                    Label(
+                        flow.markCompletedLabel(isCompleted: expense.isMoneyCompleted),
+                        systemImage: expense.isMoneyCompleted ? "arrow.uturn.backward" : "checkmark"
+                    )
                 }
+                .tint(expense.isMoneyCompleted ? .orange : .green)
             }
+        }
+    }
+
+    private var leadingToolbar: some View {
+        HStack(spacing: 12) {
+            if scope == .daily {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                }
+                .accessibilityLabel("Settings")
+            }
+
+            Button {
+                showMonthSummary = true
+            } label: {
+                Image(systemName: "chart.bar.fill")
+            }
+            .accessibilityLabel("Month summary")
+
+            if scope.isMoneyScope {
+                Button {
+                    showOutstandingMoney = true
+                } label: {
+                    Image(systemName: "list.bullet.rectangle")
+                }
+                .accessibilityLabel("All outstanding money")
+            }
+        }
+    }
+
+    private var trailingToolbar: some View {
+        Group {
+            Button {
+                showAddExpense = true
+            } label: {
+                Image(systemName: "plus")
+            }
+            .accessibilityLabel("Add expense")
+
+            Button {
+                showExportReport = true
+            } label: {
+                Image(systemName: "doc.richtext")
+            }
+            .accessibilityLabel("Export PDF report")
+
+            Button {
+                showDatePicker = true
+            } label: {
+                Image(systemName: "calendar")
+            }
+            .accessibilityLabel("Pick date")
         }
     }
 
@@ -330,17 +359,13 @@ struct ContentView: View {
             }
 
             if scope == .daily {
-                let thisWeek = store.weekTotal(forWeekContaining: store.selectedDate, category: nil)
-                let lastWeekDate = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: store.selectedDate) ?? store.selectedDate
-                let lastWeek = store.weekTotal(forWeekContaining: lastWeekDate, category: nil)
-
                 Divider()
 
                 HStack {
-                    Label("This week: \(CurrencyFormatter.string(from: thisWeek))", systemImage: "calendar")
+                    Label("This week: \(CurrencyFormatter.string(from: thisWeekTotal))", systemImage: "calendar")
                     Spacer()
-                    Text("Last: \(CurrencyFormatter.string(from: lastWeek))")
-                        .foregroundStyle(thisWeek > lastWeek ? .red : .green)
+                    Text("Last: \(CurrencyFormatter.string(from: lastWeekTotal))")
+                        .foregroundStyle(thisWeekTotal > lastWeekTotal ? .red : .green)
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)

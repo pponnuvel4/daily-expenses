@@ -35,7 +35,7 @@ struct ExportReportView: View {
                         .font(.headline)
                 }
 
-                Section("Export") {
+                Section {
                     Button {
                         generateAndSharePDF()
                     } label: {
@@ -49,6 +49,8 @@ struct ExportReportView: View {
                         Label("Export CSV", systemImage: "tablecells")
                     }
                     .disabled(reportExpenses.isEmpty)
+                } header: {
+                    Text("Export")
                 } footer: {
                     Text("PDF is best for sharing. CSV opens in Excel or Google Sheets.")
                 }
