@@ -57,5 +57,5 @@ struct RootTabView: View {
 
 #Preview {
     RootTabView()
-        .environment(ExpenseStore())
+        .environment(ExpenseStore.preview())
 }

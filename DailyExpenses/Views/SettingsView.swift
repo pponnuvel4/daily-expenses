@@ -45,10 +45,12 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    LabeledContent("Version", value: "2.2 (24)")
+                    LabeledContent("Version", value: "2.3 (25)")
                     LabeledContent("Total entries", value: "\(store.expenses.count)")
                 } header: {
                     Text("About")
+                } footer: {
+                    Text("Data is stored in a local database with a JSON backup on your device.")
                 }
 
                 if store.hasRecoverableData {

@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftData
 
 @Observable
 @MainActor
@@ -10,6 +11,7 @@ final class ExpenseStore {
     var selectedDate: Date
     var settings: AppSettings = AppSettings()
 
+    private let database: ExpenseDatabase
     private let calendar = Calendar.current
     private var lastActiveDay: Date?
 
@@ -17,10 +19,16 @@ final class ExpenseStore {
         calendar.startOfDay(for: Date())
     }
 
-    init(selectedDate: Date = Calendar.current.startOfDay(for: Date())) {
+    init(context: ModelContext, selectedDate: Date = Calendar.current.startOfDay(for: Date())) {
+        self.database = ExpenseDatabase(context: context)
         self.selectedDate = calendar.startOfDay(for: selectedDate)
         load()
         _ = refreshForNewDayIfNeeded()
+    }
+
+    static func preview() -> ExpenseStore {
+        let container = try! ExpenseModelContainerFactory.makeContainer(inMemory: true)
+        return ExpenseStore(context: ModelContext(container))
     }
 
     var expensesForSelectedDay: [Expense] {
@@ -251,12 +259,8 @@ final class ExpenseStore {
     }
 
     func restorePersistedData() -> Int {
-        let restored = ExpensePersistence.recoverFromAllSources()
-        expenses = restored.expenses
-        favorites = restored.favorites
-        trips = restored.trips
-        settings = restored.settings
-        lastActiveDay = restored.lastActiveDay.map { calendar.startOfDay(for: $0) }
+        let restored = (try? database.recoverFromLegacySources()) ?? ExpensePersistence.recoverFromAllSources()
+        apply(appData: restored)
         persist()
         return restored.recordCount
     }
@@ -266,7 +270,11 @@ final class ExpenseStore {
     }
 
     var hasRecoverableData: Bool {
-        recoverableRecordCount > expenses.count + favorites.count + trips.count
+        recoverableRecordCount > recordCount
+    }
+
+    private var recordCount: Int {
+        expenses.count + favorites.count + trips.count
     }
 
     func updateExpense(_ expense: Expense) {
@@ -442,7 +450,11 @@ final class ExpenseStore {
     }
 
     private func load() {
-        let appData = ExpensePersistence.load()
+        try? database.migrateLegacyDataIfNeeded()
+        apply(appData: database.loadSnapshot())
+    }
+
+    private func apply(appData: ExpenseAppData) {
         expenses = appData.expenses
         favorites = appData.favorites
         trips = appData.trips
@@ -451,14 +463,13 @@ final class ExpenseStore {
     }
 
     private func persist() {
-        try? ExpensePersistence.save(
-            ExpenseAppData(
-                expenses: expenses,
-                favorites: favorites,
-                trips: trips,
-                lastActiveDay: lastActiveDay,
-                settings: settings
-            )
+        let appData = ExpenseAppData(
+            expenses: expenses,
+            favorites: favorites,
+            trips: trips,
+            lastActiveDay: lastActiveDay,
+            settings: settings
         )
+        try? database.save(appData)
     }
 }

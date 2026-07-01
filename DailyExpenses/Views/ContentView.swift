@@ -434,5 +434,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView(scope: .daily)
-        .environment(ExpenseStore())
+        .environment(ExpenseStore.preview())
 }

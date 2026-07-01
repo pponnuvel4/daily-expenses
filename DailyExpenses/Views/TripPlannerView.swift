@@ -156,5 +156,5 @@ private struct TripPlanRowView: View {
 
 #Preview {
     TripPlannerView()
-        .environment(ExpenseStore())
+        .environment(ExpenseStore.preview())
 }
