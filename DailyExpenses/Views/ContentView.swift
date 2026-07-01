@@ -1,31 +1,17 @@
 import SwiftUI
 
 struct ContentView: View {
-    private enum AddField: Hashable {
-        case title
-        case note
-    }
-
     let scope: ExpenseTrackerScope
     @ObservedObject var store: ExpenseStore
-    @State private var newTitle = ""
-    @State private var newPriceText = ""
-    @State private var newQuantityText = ""
-    @State private var newUnit = ""
-    @State private var priceEntryMode: ExpensePriceEntryMode = .ratePerUnit
-    @State private var newCategory: ExpenseCategory
-    @State private var newNote = ""
     @State private var showDatePicker = false
     @State private var showMonthSummary = false
     @State private var showExportReport = false
+    @State private var showAddExpense = false
     @State private var expenseToEdit: Expense?
-    @FocusState private var focusedField: AddField?
 
     init(store: ExpenseStore, scope: ExpenseTrackerScope = .daily) {
         self.store = store
         self.scope = scope
-        _newCategory = State(initialValue: scope.defaultCategory)
-        _newUnit = State(initialValue: scope.defaultUnit)
     }
 
     private var scopedExpenses: [Expense] {
@@ -53,31 +39,55 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                addExpenseBar
-                summaryBanner
+            List {
+                Section {
+                    dateNavigationBar
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+
+                Section {
+                    summaryBanner
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(
+                    scope == .farming ? Color.brown.opacity(0.08) : Color.accentColor.opacity(0.08)
+                )
 
                 if !scopedFavorites.isEmpty {
-                    FavoritesBarView(favorites: scopedFavorites) { favorite in
-                        store.addFavoriteToDay(favorite)
-                    } onRemove: { favorite in
-                        store.removeFavorite(favorite)
+                    Section {
+                        FavoritesBarView(favorites: scopedFavorites) { favorite in
+                            store.addFavoriteToDay(favorite)
+                        } onRemove: { favorite in
+                            store.removeFavorite(favorite)
+                        }
                     }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                 }
 
-                if scopedExpenses.isEmpty {
-                    emptyState
-                } else {
-                    expenseList
+                Section {
+                    if scopedExpenses.isEmpty {
+                        emptyState
+                            .listRowBackground(Color.clear)
+                    } else {
+                        ForEach(scopedExpenses) { expense in
+                            ExpenseRowView(
+                                expense: expense,
+                                onTap: { expenseToEdit = expense },
+                                onAddFavorite: { store.addToFavorites(from: expense) }
+                            )
+                        }
+                        .onDelete { offsets in
+                            store.deleteExpenses(at: offsets, from: scopedExpenses)
+                        }
+                    }
+                } header: {
+                    Text("Expenses")
                 }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle(scope.title)
             .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { focusedField = nil }
-                }
-
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         showMonthSummary = true
@@ -88,6 +98,13 @@ struct ContentView: View {
                 }
 
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        showAddExpense = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add expense")
+
                     Button {
                         showExportReport = true
                     } label: {
@@ -102,6 +119,9 @@ struct ContentView: View {
                     }
                     .accessibilityLabel("Pick date")
                 }
+            }
+            .sheet(isPresented: $showAddExpense) {
+                AddExpenseView(scope: scope, store: store)
             }
             .sheet(isPresented: $showDatePicker) {
                 datePickerSheet
@@ -123,49 +143,6 @@ struct ContentView: View {
         }
     }
 
-    private var addExpenseBar: some View {
-        VStack(spacing: 10) {
-            dateNavigationBar
-
-            TextField(scope.addPrompt, text: $newTitle)
-                .textFieldStyle(.roundedBorder)
-                .focused($focusedField, equals: .title)
-                .submitLabel(.next)
-                .onTapGesture { focusedField = .title }
-
-            QuantityPriceInputSection(
-                quantityText: $newQuantityText,
-                unit: $newUnit,
-                priceText: $newPriceText,
-                entryMode: $priceEntryMode
-            )
-
-            if scope.showsCategoryPicker {
-                Picker("Category", selection: $newCategory) {
-                    ForEach(ExpenseCategory.allCases) { category in
-                        Label(category.title, systemImage: category.icon).tag(category)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-
-            TextField("Note (optional)", text: $newNote)
-                .textFieldStyle(.roundedBorder)
-                .focused($focusedField, equals: .note)
-                .submitLabel(.done)
-                .onSubmit { addExpense(refocusKeyboard: false) }
-
-            Button("Add") {
-                addExpense(refocusKeyboard: true)
-            }
-            .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
-            .disabled(parsedPrice == nil)
-        }
-        .padding()
-        .background(.bar)
-    }
-
     private var dateNavigationBar: some View {
         HStack {
             Button {
@@ -180,19 +157,15 @@ struct ContentView: View {
             VStack(spacing: 2) {
                 Text(store.selectedDayTitle)
                     .font(.headline)
-                Text(store.selectedDate.formatted(date: .complete, time: .omitted))
+                Text(store.selectedDate.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if !store.isViewingToday {
                     Button("Jump to today") {
                         store.goToToday()
-                        clearAddForm()
                     }
                     .font(.caption.weight(.semibold))
                 }
-                Text(appVersionLabel)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
             }
 
             Spacer()
@@ -228,28 +201,6 @@ struct ContentView: View {
             }
         }
         .padding()
-        .background(scope == .farming ? Color.brown.opacity(0.08) : Color.accentColor.opacity(0.08))
-    }
-
-    private var expenseList: some View {
-        List {
-            Section {
-                ForEach(scopedExpenses) { expense in
-                    ExpenseRowView(
-                        expense: expense,
-                        onTap: { expenseToEdit = expense },
-                        onAddFavorite: { store.addToFavorites(from: expense) }
-                    )
-                }
-                .onDelete { offsets in
-                    store.deleteExpenses(at: offsets, from: scopedExpenses)
-                }
-            } header: {
-                Text("Expenses")
-            }
-        }
-        .listStyle(.insetGrouped)
-        .scrollDismissesKeyboard(.interactively)
     }
 
     private var emptyState: some View {
@@ -257,8 +208,14 @@ struct ContentView: View {
             Label("No expenses", systemImage: scope.tabIcon)
         } description: {
             Text("\(scope.emptyStateMessage) \(store.selectedDayTitle.lowercased()).")
+        } actions: {
+            Button("Add expense") {
+                showAddExpense = true
+            }
+            .buttonStyle(.borderedProminent)
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
     }
 
     private var datePickerSheet: some View {
@@ -283,59 +240,6 @@ struct ContentView: View {
             }
         }
         .presentationDetents([.medium, .large])
-    }
-
-    private var appVersionLabel: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "Version \(version) (\(build))"
-    }
-
-    private var parsedQuantity: Double? {
-        QuantityFormatter.parse(newQuantityText)
-    }
-
-    private var parsedPrice: Double? {
-        QuantityFormatter.parse(newPriceText)
-    }
-
-    private func addExpense(refocusKeyboard: Bool) {
-        guard let price = parsedPrice else { return }
-        let quantity = parsedQuantity
-        let total = QuantityFormatter.resolveTotal(
-            price: price,
-            quantity: quantity,
-            mode: quantity == nil ? .total : priceEntryMode
-        )
-
-        store.addExpense(
-            title: newTitle,
-            amount: total,
-            category: scope.showsCategoryPicker ? newCategory : scope.defaultCategory,
-            note: newNote,
-            quantity: quantity,
-            unit: QuantityFormatter.normalizedUnit(newUnit)
-        )
-        clearAddForm()
-
-        if refocusKeyboard {
-            Task { @MainActor in
-                focusedField = .title
-            }
-        } else {
-            focusedField = nil
-        }
-    }
-
-    private func clearAddForm() {
-        newTitle = ""
-        newPriceText = ""
-        newQuantityText = ""
-        newUnit = scope.defaultUnit
-        newNote = ""
-        newCategory = scope.defaultCategory
-        priceEntryMode = .ratePerUnit
-        focusedField = nil
     }
 }
 
