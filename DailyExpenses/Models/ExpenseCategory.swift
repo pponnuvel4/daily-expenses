@@ -2,6 +2,7 @@ import SwiftUI
 
 enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     case food
+    case groceries
     case transport
     case shopping
     case bills
@@ -15,6 +16,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .food: "Food"
+        case .groceries: "Groceries"
         case .transport: "Transport"
         case .shopping: "Shopping"
         case .bills: "Bills"
@@ -28,6 +30,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .food: "fork.knife"
+        case .groceries: "cart.fill"
         case .transport: "car.fill"
         case .shopping: "bag.fill"
         case .bills: "doc.text.fill"
@@ -41,6 +44,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     var color: Color {
         switch self {
         case .food: .orange
+        case .groceries: .teal
         case .transport: .blue
         case .shopping: .purple
         case .bills: .red

@@ -33,6 +33,7 @@ struct ContentView: View {
     private var defaultReportType: ExpenseReportType {
         switch scope {
         case .daily: .selectedDay
+        case .groceries: .selectedDayGroceries
         case .farming: .selectedDayFarming
         }
     }
@@ -50,9 +51,7 @@ struct ContentView: View {
                     summaryBanner
                 }
                 .listRowInsets(EdgeInsets())
-                .listRowBackground(
-                    scope == .farming ? Color.brown.opacity(0.08) : Color.accentColor.opacity(0.08)
-                )
+                .listRowBackground(scope.listBannerColor)
 
                 if !scopedFavorites.isEmpty {
                     Section {

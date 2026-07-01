@@ -58,7 +58,7 @@ struct MonthSummaryView: View {
                     }
                 }
             }
-            .navigationTitle(scope == .farming ? "Farming Summary" : "Month Summary")
+            .navigationTitle(scope.monthSummaryTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

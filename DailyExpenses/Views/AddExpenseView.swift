@@ -57,7 +57,7 @@ struct AddExpenseView: View {
                         .focused($focusedField, equals: .note)
                 }
             }
-            .navigationTitle(scope == .farming ? "Add Farming Expense" : "Add Expense")
+            .navigationTitle(scope.addSheetTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
