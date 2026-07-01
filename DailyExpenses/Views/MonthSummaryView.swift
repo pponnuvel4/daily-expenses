@@ -9,10 +9,15 @@ struct CategoryTotal: Identifiable {
 
 struct MonthSummaryView: View {
     @ObservedObject var store: ExpenseStore
+    let scope: ExpenseTrackerScope
     @Environment(\.dismiss) private var dismiss
 
     private var totals: [CategoryTotal] {
-        store.categoryTotals(forMonthContaining: store.selectedDate)
+        store.categoryTotals(forMonthContaining: store.selectedDate, category: scope.categoryFilter)
+    }
+
+    private var monthTotal: Double {
+        store.monthTotal(forMonthContaining: store.selectedDate, category: scope.categoryFilter)
     }
 
     var body: some View {
@@ -20,7 +25,7 @@ struct MonthSummaryView: View {
             List {
                 Section {
                     LabeledContent("Month", value: store.selectedMonthTitle)
-                    LabeledContent("Total spent", value: CurrencyFormatter.string(from: store.monthTotal))
+                    LabeledContent("Total spent", value: CurrencyFormatter.string(from: monthTotal))
                         .font(.headline)
                 }
 
@@ -53,7 +58,7 @@ struct MonthSummaryView: View {
                     }
                 }
             }
-            .navigationTitle("Month Summary")
+            .navigationTitle(scope == .farming ? "Farming Summary" : "Month Summary")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

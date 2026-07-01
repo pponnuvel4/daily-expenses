@@ -6,7 +6,7 @@ struct DailyExpensesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(store: store)
+            RootTabView(store: store)
         }
     }
 }

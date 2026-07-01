@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EditExpenseView: View {
     let expense: Expense
+    let lockedCategory: ExpenseCategory?
     let onSave: (Expense) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -17,12 +18,17 @@ struct EditExpenseView: View {
         case note
     }
 
-    init(expense: Expense, onSave: @escaping (Expense) -> Void) {
+    init(
+        expense: Expense,
+        lockedCategory: ExpenseCategory? = nil,
+        onSave: @escaping (Expense) -> Void
+    ) {
         self.expense = expense
+        self.lockedCategory = lockedCategory
         self.onSave = onSave
         _title = State(initialValue: expense.title)
         _amountText = State(initialValue: Self.formatAmount(expense.amount))
-        _category = State(initialValue: expense.category)
+        _category = State(initialValue: lockedCategory ?? expense.category)
         _note = State(initialValue: expense.note ?? "")
     }
 
@@ -40,6 +46,7 @@ struct EditExpenseView: View {
                             Label(item.title, systemImage: item.icon).tag(item)
                         }
                     }
+                    .disabled(lockedCategory != nil)
                     TextField("Note (optional)", text: $note)
                         .focused($focusedField, equals: .note)
                 }
@@ -77,7 +84,7 @@ struct EditExpenseView: View {
         var updated = expense
         updated.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.amount = amount
-        updated.category = category
+        updated.category = lockedCategory ?? category
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote
         onSave(updated)
         dismiss()
