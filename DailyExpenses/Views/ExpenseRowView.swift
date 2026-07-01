@@ -102,9 +102,12 @@ struct ExpenseRowView: View {
             return .secondary
         }
         switch expense.resolvedMoneyFlow {
-        case .given: .red
-        case .borrowed: .orange
-        case nil: .primary
+        case .given:
+            return .red
+        case .borrowed:
+            return .orange
+        case nil:
+            return .primary
         }
     }
 }
