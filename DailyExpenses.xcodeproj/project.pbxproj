@@ -57,6 +57,7 @@
 		D20000000000000000000021 /* QuantityInputFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityInputFields.swift; sourceTree = "<group>"; };
 		D20000000000000000000022 /* ExpensePriceEntryMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensePriceEntryMode.swift; sourceTree = "<group>"; };
 		D20000000000000000000023 /* QuantityPriceInputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityPriceInputSection.swift; sourceTree = "<group>"; };
+		D20000000000000000000024 /* AddExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseView.swift; sourceTree = "<group>"; };
 		D30000000000000000000001 /* DailyExpenses.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyExpenses.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -131,6 +132,7 @@
 				D20000000000000000000005 /* MonthSummaryView.swift */,
 				D20000000000000000000006 /* FavoritesBarView.swift */,
 				D20000000000000000000018 /* ExportReportView.swift */,
+				D20000000000000000000024 /* AddExpenseView.swift */,
 				D20000000000000000000021 /* QuantityInputFields.swift */,
 				D20000000000000000000023 /* QuantityPriceInputSection.swift */,
 			);
@@ -240,6 +242,7 @@
 				D10000000000000000000021 /* QuantityInputFields.swift in Sources */,
 				D10000000000000000000022 /* ExpensePriceEntryMode.swift in Sources */,
 				D10000000000000000000023 /* QuantityPriceInputSection.swift in Sources */,
+				D10000000000000000000024 /* AddExpenseView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,7 +289,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -311,7 +314,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Daily Expenses";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
