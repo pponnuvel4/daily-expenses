@@ -25,6 +25,7 @@ struct ContentView: View {
         self.store = store
         self.scope = scope
         _newCategory = State(initialValue: scope.defaultCategory)
+        _newUnit = State(initialValue: scope.defaultUnit)
     }
 
     private var scopedExpenses: [Expense] {
@@ -133,12 +134,19 @@ struct ContentView: View {
                 .onSubmit { focusedField = .amount }
                 .onTapGesture { focusedField = .title }
 
+            QuantityInputFields(quantityText: $newQuantityText, unit: $newUnit)
+
             TextField(amountFieldPlaceholder, text: $newAmountText)
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .amount)
 
-            QuantityInputFields(quantityText: $newQuantityText, unit: $newUnit)
+            if usesRatePricing {
+                Text("Enter price per \(displayUnit), not the full total.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             if let computedTotal = computedLineTotal {
                 HStack {
@@ -306,10 +314,19 @@ struct ContentView: View {
         QuantityFormatter.parse(newQuantityText)
     }
 
+    private var displayUnit: String {
+        QuantityFormatter.normalizedUnit(newUnit) ?? scope.defaultUnit
+    }
+
+    private var usesRatePricing: Bool {
+        parsedQuantity != nil || (scope == .farming && !displayUnit.isEmpty)
+    }
+
     private var amountFieldPlaceholder: String {
         QuantityFormatter.amountFieldLabel(
             hasQuantity: parsedQuantity != nil,
-            unit: QuantityFormatter.normalizedUnit(newUnit)
+            unit: displayUnit.isEmpty ? nil : displayUnit,
+            preferRateLabel: scope == .farming
         )
     }
 
@@ -354,7 +371,7 @@ struct ContentView: View {
         newTitle = ""
         newAmountText = ""
         newQuantityText = ""
-        newUnit = ""
+        newUnit = scope.defaultUnit
         newNote = ""
         newCategory = scope.defaultCategory
         focusedField = nil

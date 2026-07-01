@@ -61,4 +61,11 @@ enum ExpenseTrackerScope: String, CaseIterable, Identifiable {
         case .farming: "Add a farming expense for"
         }
     }
+
+    var defaultUnit: String {
+        switch self {
+        case .daily: ""
+        case .farming: "kg"
+        }
+    }
 }

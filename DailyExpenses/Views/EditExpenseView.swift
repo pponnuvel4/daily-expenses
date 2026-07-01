@@ -44,10 +44,15 @@ struct EditExpenseView: View {
         QuantityFormatter.parse(quantityText)
     }
 
+    private var displayUnit: String {
+        QuantityFormatter.normalizedUnit(unit) ?? "kg"
+    }
+
     private var amountFieldPlaceholder: String {
         QuantityFormatter.amountFieldLabel(
             hasQuantity: parsedQuantity != nil,
-            unit: QuantityFormatter.normalizedUnit(unit)
+            unit: displayUnit.isEmpty ? nil : displayUnit,
+            preferRateLabel: parsedQuantity != nil
         )
     }
 
@@ -63,10 +68,15 @@ struct EditExpenseView: View {
                 Section {
                     TextField("Title", text: $title)
                         .focused($focusedField, equals: .title)
+                    QuantityInputFields(quantityText: $quantityText, unit: $unit)
                     TextField(amountFieldPlaceholder, text: $amountText)
                         .keyboardType(.decimalPad)
                         .focused($focusedField, equals: .amount)
-                    QuantityInputFields(quantityText: $quantityText, unit: $unit)
+                    if parsedQuantity != nil, parsedAmount != nil {
+                        Text("Enter price per \(displayUnit), not the full total.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                     if let computedLineTotal {
                         LabeledContent("Line total", value: CurrencyFormatter.string(from: computedLineTotal))
                     }
