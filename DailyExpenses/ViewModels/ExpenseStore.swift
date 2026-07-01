@@ -9,6 +9,10 @@ final class ExpenseStore: ObservableObject {
     private let calendar = Calendar.current
     private var lastActiveDay: Date?
 
+    private var today: Date {
+        calendar.startOfDay(for: Date())
+    }
+
     init(selectedDate: Date = Calendar.current.startOfDay(for: Date())) {
         self.selectedDate = calendar.startOfDay(for: selectedDate)
         load()
@@ -54,7 +58,7 @@ final class ExpenseStore: ObservableObject {
     }
 
     var selectedDayTitle: String {
-        if calendar.isDateInToday(selectedDate) {
+        if calendar.isDate(selectedDate, inSameDayAs: today) {
             return "Today"
         }
         if calendar.isDateInYesterday(selectedDate) {
@@ -101,21 +105,30 @@ final class ExpenseStore: ObservableObject {
     }
 
     func shiftSelectedDate(byDays days: Int) {
+        guard days != 0 else { return }
         guard let newDate = calendar.date(byAdding: .day, value: days, to: selectedDate) else { return }
-        selectedDate = calendar.startOfDay(for: newDate)
+        let normalized = calendar.startOfDay(for: newDate)
+        guard normalized <= today else { return }
+        selectedDate = normalized
     }
 
     func goToToday() {
-        selectedDate = calendar.startOfDay(for: Date())
+        guard !calendar.isDate(selectedDate, inSameDayAs: today) else { return }
+        selectedDate = today
     }
 
     var isViewingToday: Bool {
-        calendar.isDateInToday(selectedDate)
+        calendar.isDate(selectedDate, inSameDayAs: today)
+    }
+
+    var canShiftForward: Bool {
+        guard let nextDate = calendar.date(byAdding: .day, value: 1, to: selectedDate) else { return false }
+        return calendar.startOfDay(for: nextDate) <= today
     }
 
     @discardableResult
     func refreshForNewDayIfNeeded() -> Bool {
-        let today = calendar.startOfDay(for: Date())
+        let today = self.today
 
         if let lastActiveDay {
             let isNewDay = !calendar.isDate(lastActiveDay, inSameDayAs: today)
@@ -128,7 +141,6 @@ final class ExpenseStore: ObservableObject {
         }
 
         self.lastActiveDay = today
-        selectedDate = today
         persist()
         return false
     }
