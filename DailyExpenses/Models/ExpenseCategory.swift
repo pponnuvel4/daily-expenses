@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     case food
@@ -41,21 +41,6 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
         case .farming: "leaf.fill"
         case .money: "banknote.fill"
         case .other: "ellipsis.circle.fill"
-        }
-    }
-
-    var color: Color {
-        switch self {
-        case .food: .orange
-        case .groceries: .teal
-        case .transport: .blue
-        case .shopping: .purple
-        case .bills: .red
-        case .health: .pink
-        case .entertainment: .green
-        case .farming: .brown
-        case .money: .indigo
-        case .other: .gray
         }
     }
 }

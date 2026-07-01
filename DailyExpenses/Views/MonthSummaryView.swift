@@ -1,14 +1,7 @@
 import SwiftUI
 
-struct CategoryTotal: Identifiable {
-    let id: ExpenseCategory
-    let category: ExpenseCategory
-    let amount: Double
-    let percentage: Double
-}
-
 struct MonthSummaryView: View {
-    @ObservedObject var store: ExpenseStore
+    @Environment(ExpenseStore.self) private var store
     let scope: ExpenseTrackerScope
     @Environment(\.dismiss) private var dismiss
 

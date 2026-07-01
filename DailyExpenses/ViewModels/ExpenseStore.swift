@@ -1,10 +1,12 @@
 import Foundation
+import Observation
 
+@Observable
 @MainActor
-final class ExpenseStore: ObservableObject {
-    @Published private(set) var expenses: [Expense] = []
-    @Published private(set) var favorites: [FavoriteExpense] = []
-    @Published var selectedDate: Date
+final class ExpenseStore {
+    private(set) var expenses: [Expense] = []
+    private(set) var favorites: [FavoriteExpense] = []
+    var selectedDate: Date
 
     private let calendar = Calendar.current
     private var lastActiveDay: Date?
@@ -303,7 +305,7 @@ final class ExpenseStore: ObservableObject {
     }
 
     private func persist() {
-        ExpensePersistence.save(
+        try? ExpensePersistence.save(
             ExpenseAppData(
                 expenses: expenses,
                 favorites: favorites,

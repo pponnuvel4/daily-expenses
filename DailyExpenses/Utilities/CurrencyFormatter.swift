@@ -1,10 +1,14 @@
 import Foundation
 
 enum CurrencyFormatter {
-    static func string(from value: Double) -> String {
+    private static let currencyFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
+        return formatter
+    }()
+
+    static func string(from value: Double) -> String {
+        currencyFormatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
     }
 }

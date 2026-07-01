@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AddExpenseView: View {
     let scope: ExpenseTrackerScope
-    @ObservedObject var store: ExpenseStore
+    @Environment(ExpenseStore.self) private var store
 
     @Environment(\.dismiss) private var dismiss
     @State private var title = ""
@@ -21,9 +21,8 @@ struct AddExpenseView: View {
         case note
     }
 
-    init(scope: ExpenseTrackerScope, store: ExpenseStore) {
+    init(scope: ExpenseTrackerScope) {
         self.scope = scope
-        self.store = store
         _category = State(initialValue: scope.defaultCategory)
         _unit = State(initialValue: scope.defaultUnit)
     }

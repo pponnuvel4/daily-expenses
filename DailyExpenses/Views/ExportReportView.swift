@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ExportReportView: View {
-    @ObservedObject var store: ExpenseStore
+    @Environment(ExpenseStore.self) private var store
     let defaultReportType: ExpenseReportType
 
     @Environment(\.dismiss) private var dismiss
@@ -10,8 +10,7 @@ struct ExportReportView: View {
     @State private var showShareSheet = false
     @State private var errorMessage: String?
 
-    init(store: ExpenseStore, defaultReportType: ExpenseReportType) {
-        self.store = store
+    init(defaultReportType: ExpenseReportType) {
         self.defaultReportType = defaultReportType
         _selectedReportType = State(initialValue: defaultReportType)
     }

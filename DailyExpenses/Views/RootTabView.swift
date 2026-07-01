@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct RootTabView: View {
-    @ObservedObject var store: ExpenseStore
+    @Environment(ExpenseStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TabView {
             ForEach(ExpenseTrackerScope.allCases) { scope in
-                ContentView(store: store, scope: scope)
+                ContentView(scope: scope)
                     .tabItem {
                         Label(scope.tabTitle, systemImage: scope.tabIcon)
                     }
@@ -21,5 +21,6 @@ struct RootTabView: View {
 }
 
 #Preview {
-    RootTabView(store: ExpenseStore())
+    RootTabView()
+        .environment(ExpenseStore())
 }

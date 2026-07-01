@@ -2,15 +2,14 @@ import SwiftUI
 
 struct ContentView: View {
     let scope: ExpenseTrackerScope
-    @ObservedObject var store: ExpenseStore
+    @Environment(ExpenseStore.self) private var store
     @State private var showDatePicker = false
     @State private var showMonthSummary = false
     @State private var showExportReport = false
     @State private var showAddExpense = false
     @State private var expenseToEdit: Expense?
 
-    init(store: ExpenseStore, scope: ExpenseTrackerScope = .daily) {
-        self.store = store
+    init(scope: ExpenseTrackerScope = .daily) {
         self.scope = scope
     }
 
@@ -148,16 +147,16 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showAddExpense) {
-                AddExpenseView(scope: scope, store: store)
+                AddExpenseView(scope: scope)
             }
             .sheet(isPresented: $showDatePicker) {
                 datePickerSheet
             }
             .sheet(isPresented: $showMonthSummary) {
-                MonthSummaryView(store: store, scope: scope)
+                MonthSummaryView(scope: scope)
             }
             .sheet(isPresented: $showExportReport) {
-                ExportReportView(store: store, defaultReportType: defaultReportType)
+                ExportReportView(defaultReportType: defaultReportType)
             }
             .sheet(item: $expenseToEdit) { expense in
                 EditExpenseView(
@@ -307,7 +306,7 @@ struct ContentView: View {
         NavigationStack {
             DatePicker(
                 "Select date",
-                selection: $store.selectedDate,
+                selection: selectedDateBinding,
                 in: ...Date(),
                 displayedComponents: .date
             )
@@ -326,8 +325,16 @@ struct ContentView: View {
         }
         .presentationDetents([.medium, .large])
     }
+
+    private var selectedDateBinding: Binding<Date> {
+        Binding(
+            get: { store.selectedDate },
+            set: { store.selectedDate = Calendar.current.startOfDay(for: $0) }
+        )
+    }
 }
 
 #Preview {
-    ContentView(store: ExpenseStore(), scope: .daily)
+    ContentView(scope: .daily)
+        .environment(ExpenseStore())
 }

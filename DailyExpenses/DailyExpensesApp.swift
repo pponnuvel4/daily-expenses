@@ -2,11 +2,12 @@ import SwiftUI
 
 @main
 struct DailyExpensesApp: App {
-    @StateObject private var store = ExpenseStore()
+    @State private var store = ExpenseStore()
 
     var body: some Scene {
         WindowGroup {
-            RootTabView(store: store)
+            RootTabView()
+                .environment(store)
         }
     }
 }
