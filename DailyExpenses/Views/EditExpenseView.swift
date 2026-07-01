@@ -29,11 +29,32 @@ struct EditExpenseView: View {
         self.lockedCategory = lockedCategory
         self.onSave = onSave
         _title = State(initialValue: expense.title)
-        _amountText = State(initialValue: Self.formatAmount(expense.amount))
+        _amountText = State(
+            initialValue: Self.formatAmount(
+                QuantityFormatter.unitPrice(total: expense.amount, quantity: expense.quantity)
+            )
+        )
         _quantityText = State(initialValue: expense.quantity.map { QuantityFormatter.string(from: $0) } ?? "")
         _unit = State(initialValue: expense.unit ?? "")
         _category = State(initialValue: lockedCategory ?? expense.category)
         _note = State(initialValue: expense.note ?? "")
+    }
+
+    private var parsedQuantity: Double? {
+        QuantityFormatter.parse(quantityText)
+    }
+
+    private var amountFieldPlaceholder: String {
+        QuantityFormatter.amountFieldLabel(
+            hasQuantity: parsedQuantity != nil,
+            unit: QuantityFormatter.normalizedUnit(unit)
+        )
+    }
+
+    private var computedLineTotal: Double? {
+        guard let rate = parsedAmount else { return nil }
+        guard let quantity = parsedQuantity else { return nil }
+        return QuantityFormatter.totalAmount(unitPrice: rate, quantity: quantity)
     }
 
     var body: some View {
@@ -42,10 +63,13 @@ struct EditExpenseView: View {
                 Section {
                     TextField("Title", text: $title)
                         .focused($focusedField, equals: .title)
-                    TextField("Amount", text: $amountText)
+                    TextField(amountFieldPlaceholder, text: $amountText)
                         .keyboardType(.decimalPad)
                         .focused($focusedField, equals: .amount)
                     QuantityInputFields(quantityText: $quantityText, unit: $unit)
+                    if let computedLineTotal {
+                        LabeledContent("Line total", value: CurrencyFormatter.string(from: computedLineTotal))
+                    }
                     Picker("Category", selection: $category) {
                         ForEach(ExpenseCategory.allCases) { item in
                             Label(item.title, systemImage: item.icon).tag(item)
@@ -84,12 +108,13 @@ struct EditExpenseView: View {
     }
 
     private func save() {
-        guard let amount = parsedAmount else { return }
+        guard let enteredPrice = parsedAmount else { return }
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        let quantity = parsedQuantity
         var updated = expense
         updated.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        updated.amount = amount
-        updated.quantity = QuantityFormatter.parse(quantityText)
+        updated.amount = QuantityFormatter.totalAmount(unitPrice: enteredPrice, quantity: quantity)
+        updated.quantity = quantity
         updated.unit = QuantityFormatter.normalizedUnit(unit)
         updated.category = lockedCategory ?? category
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote

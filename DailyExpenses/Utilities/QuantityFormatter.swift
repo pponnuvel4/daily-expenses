@@ -22,4 +22,23 @@ enum QuantityFormatter {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
+
+    /// When quantity is set, the entered price is treated as rate per unit.
+    static func totalAmount(unitPrice: Double, quantity: Double?) -> Double {
+        guard let quantity, quantity > 0 else { return unitPrice }
+        return unitPrice * quantity
+    }
+
+    static func unitPrice(total: Double, quantity: Double?) -> Double {
+        guard let quantity, quantity > 0 else { return total }
+        return total / quantity
+    }
+
+    static func amountFieldLabel(hasQuantity: Bool, unit: String?) -> String {
+        guard hasQuantity else { return "Amount (total)" }
+        if let unit, !unit.isEmpty {
+            return "Rate (per \(unit))"
+        }
+        return "Rate (per unit)"
+    }
 }
