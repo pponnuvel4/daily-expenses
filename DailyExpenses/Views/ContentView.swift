@@ -11,6 +11,8 @@ struct ContentView: View {
     @ObservedObject var store: ExpenseStore
     @State private var newTitle = ""
     @State private var newAmountText = ""
+    @State private var newQuantityText = ""
+    @State private var newUnit = ""
     @State private var newCategory: ExpenseCategory
     @State private var newNote = ""
     @State private var showDatePicker = false
@@ -135,6 +137,8 @@ struct ContentView: View {
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .amount)
+
+            QuantityInputFields(quantityText: $newQuantityText, unit: $newUnit)
 
             if scope.showsCategoryPicker {
                 Picker("Category", selection: $newCategory) {
@@ -301,7 +305,9 @@ struct ContentView: View {
             title: newTitle,
             amount: amount,
             category: scope.showsCategoryPicker ? newCategory : scope.defaultCategory,
-            note: newNote
+            note: newNote,
+            quantity: QuantityFormatter.parse(newQuantityText),
+            unit: QuantityFormatter.normalizedUnit(newUnit)
         )
         clearAddForm()
 
@@ -317,6 +323,8 @@ struct ContentView: View {
     private func clearAddForm() {
         newTitle = ""
         newAmountText = ""
+        newQuantityText = ""
+        newUnit = ""
         newNote = ""
         newCategory = scope.defaultCategory
         focusedField = nil

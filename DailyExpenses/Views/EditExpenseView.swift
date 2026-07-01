@@ -8,6 +8,8 @@ struct EditExpenseView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var title: String
     @State private var amountText: String
+    @State private var quantityText: String
+    @State private var unit: String
     @State private var category: ExpenseCategory
     @State private var note: String
     @FocusState private var focusedField: Field?
@@ -28,6 +30,8 @@ struct EditExpenseView: View {
         self.onSave = onSave
         _title = State(initialValue: expense.title)
         _amountText = State(initialValue: Self.formatAmount(expense.amount))
+        _quantityText = State(initialValue: expense.quantity.map { QuantityFormatter.string(from: $0) } ?? "")
+        _unit = State(initialValue: expense.unit ?? "")
         _category = State(initialValue: lockedCategory ?? expense.category)
         _note = State(initialValue: expense.note ?? "")
     }
@@ -41,6 +45,7 @@ struct EditExpenseView: View {
                     TextField("Amount", text: $amountText)
                         .keyboardType(.decimalPad)
                         .focused($focusedField, equals: .amount)
+                    QuantityInputFields(quantityText: $quantityText, unit: $unit)
                     Picker("Category", selection: $category) {
                         ForEach(ExpenseCategory.allCases) { item in
                             Label(item.title, systemImage: item.icon).tag(item)
@@ -84,6 +89,8 @@ struct EditExpenseView: View {
         var updated = expense
         updated.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.amount = amount
+        updated.quantity = QuantityFormatter.parse(quantityText)
+        updated.unit = QuantityFormatter.normalizedUnit(unit)
         updated.category = lockedCategory ?? category
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote
         onSave(updated)
