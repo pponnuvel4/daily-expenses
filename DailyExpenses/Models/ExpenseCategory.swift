@@ -7,6 +7,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     case bills
     case health
     case entertainment
+    case farming
     case other
 
     var id: String { rawValue }
@@ -19,6 +20,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
         case .bills: "Bills"
         case .health: "Health"
         case .entertainment: "Fun"
+        case .farming: "Farming"
         case .other: "Other"
         }
     }
@@ -31,6 +33,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
         case .bills: "doc.text.fill"
         case .health: "heart.fill"
         case .entertainment: "gamecontroller.fill"
+        case .farming: "leaf.fill"
         case .other: "ellipsis.circle.fill"
         }
     }
@@ -43,6 +46,7 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
         case .bills: .red
         case .health: .pink
         case .entertainment: .green
+        case .farming: .brown
         case .other: .gray
         }
     }
