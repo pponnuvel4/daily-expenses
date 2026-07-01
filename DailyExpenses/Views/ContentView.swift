@@ -15,7 +15,14 @@ struct ContentView: View {
     }
 
     private var scopedExpenses: [Expense] {
-        store.expenses(for: store.selectedDate, category: scope.categoryFilter)
+        let list = store.expenses(for: store.selectedDate, category: scope.categoryFilter)
+        guard scope.isMoneyScope else { return list }
+        return list.sorted { lhs, rhs in
+            if lhs.isMoneyCompleted != rhs.isMoneyCompleted {
+                return !lhs.isMoneyCompleted && rhs.isMoneyCompleted
+            }
+            return lhs.date > rhs.date
+        }
     }
 
     private var scopedDayTotal: Double {
@@ -78,8 +85,24 @@ struct ContentView: View {
                             ExpenseRowView(
                                 expense: expense,
                                 onTap: { expenseToEdit = expense },
-                                onAddFavorite: { store.addToFavorites(from: expense) }
+                                onAddFavorite: { store.addToFavorites(from: expense) },
+                                onToggleCompleted: scope.isMoneyScope
+                                    ? { store.toggleMoneyCompleted(for: expense) }
+                                    : nil
                             )
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                if scope.isMoneyScope, let flow = expense.resolvedMoneyFlow {
+                                    Button {
+                                        store.toggleMoneyCompleted(for: expense)
+                                    } label: {
+                                        Label(
+                                            flow.markCompletedLabel(isCompleted: expense.isMoneyCompleted),
+                                            systemImage: expense.isMoneyCompleted ? "arrow.uturn.backward" : "checkmark"
+                                        )
+                                    }
+                                    .tint(expense.isMoneyCompleted ? .orange : .green)
+                                }
+                            }
                         }
                         .onDelete { offsets in
                             store.deleteExpenses(at: offsets, from: scopedExpenses)
@@ -191,6 +214,11 @@ struct ContentView: View {
 
     private var moneySummaryBanner: some View {
         VStack(spacing: 12) {
+            Text("Outstanding")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Given")

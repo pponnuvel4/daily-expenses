@@ -8,6 +8,7 @@ struct Expense: Identifiable, Codable, Equatable {
     var unit: String?
     var category: ExpenseCategory
     var moneyFlow: MoneyFlow?
+    var moneyCompleted: Bool?
     var note: String?
     var date: Date
 
@@ -19,6 +20,7 @@ struct Expense: Identifiable, Codable, Equatable {
         unit: String? = nil,
         category: ExpenseCategory,
         moneyFlow: MoneyFlow? = nil,
+        moneyCompleted: Bool? = nil,
         note: String? = nil,
         date: Date = Date()
     ) {
@@ -29,6 +31,7 @@ struct Expense: Identifiable, Codable, Equatable {
         self.unit = QuantityFormatter.normalizedUnit(unit ?? "")
         self.category = category
         self.moneyFlow = category == .money ? moneyFlow : nil
+        self.moneyCompleted = category == .money ? moneyCompleted : nil
         self.note = note
         self.date = date
     }
@@ -41,6 +44,16 @@ struct Expense: Identifiable, Codable, Equatable {
     var resolvedMoneyFlow: MoneyFlow? {
         guard category == .money else { return nil }
         return moneyFlow ?? .given
+    }
+
+    var isMoneyCompleted: Bool {
+        guard category == .money else { return false }
+        return moneyCompleted == true
+    }
+
+    var moneyStatusLabel: String? {
+        guard let flow = resolvedMoneyFlow else { return nil }
+        return isMoneyCompleted ? flow.completedStatusLabel : "Pending"
     }
 
     var quantityLabel: String? {

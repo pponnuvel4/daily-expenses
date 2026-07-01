@@ -118,16 +118,39 @@ final class ExpenseStore: ObservableObject {
         moneyBorrowedTotal(forMonthContaining: date) - moneyGivenTotal(forMonthContaining: date)
     }
 
-    private func moneyTotal(for day: Date, flow: MoneyFlow) -> Double {
+    private func moneyTotal(for day: Date, flow: MoneyFlow, completed: Bool) -> Double {
         expenses(for: day, category: .money)
-            .filter { $0.resolvedMoneyFlow == flow }
+            .filter { $0.resolvedMoneyFlow == flow && $0.isMoneyCompleted == completed }
             .reduce(0) { $0 + $1.amount }
     }
 
-    private func moneyTotal(forMonthContaining date: Date, flow: MoneyFlow) -> Double {
+    private func moneyTotal(forMonthContaining date: Date, flow: MoneyFlow, completed: Bool) -> Double {
         expensesForMonth(containing: date, category: .money)
-            .filter { $0.resolvedMoneyFlow == flow }
+            .filter { $0.resolvedMoneyFlow == flow && $0.isMoneyCompleted == completed }
             .reduce(0) { $0 + $1.amount }
+    }
+
+    private func moneyTotal(for day: Date, flow: MoneyFlow) -> Double {
+        moneyTotal(for: day, flow: flow, completed: false)
+    }
+
+    private func moneyTotal(forMonthContaining date: Date, flow: MoneyFlow) -> Double {
+        moneyTotal(forMonthContaining: date, flow: flow, completed: false)
+    }
+
+    func moneyGivenCompletedTotal(forMonthContaining date: Date) -> Double {
+        moneyTotal(forMonthContaining: date, flow: .given, completed: true)
+    }
+
+    func moneyBorrowedCompletedTotal(forMonthContaining date: Date) -> Double {
+        moneyTotal(forMonthContaining: date, flow: .borrowed, completed: true)
+    }
+
+    func toggleMoneyCompleted(for expense: Expense) {
+        guard expense.category == .money,
+              var updated = expenses.first(where: { $0.id == expense.id }) else { return }
+        updated.moneyCompleted = !(updated.moneyCompleted ?? false)
+        updateExpense(updated)
     }
 
     func updateExpense(_ expense: Expense) {

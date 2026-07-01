@@ -47,10 +47,26 @@ struct MonthSummaryView: View {
     private var moneySummaryContent: some View {
         Section {
             LabeledContent("Month", value: store.selectedMonthTitle)
+        }
+
+        Section("Outstanding") {
             LabeledContent("Given", value: CurrencyFormatter.string(from: store.moneyGivenTotal(forMonthContaining: store.selectedDate)))
             LabeledContent("Borrowed", value: CurrencyFormatter.string(from: store.moneyBorrowedTotal(forMonthContaining: store.selectedDate)))
             LabeledContent("Net", value: CurrencyFormatter.string(from: store.moneyNetTotal(forMonthContaining: store.selectedDate)))
                 .font(.headline)
+        }
+
+        let completedGiven = store.moneyGivenCompletedTotal(forMonthContaining: store.selectedDate)
+        let completedBorrowed = store.moneyBorrowedCompletedTotal(forMonthContaining: store.selectedDate)
+        if completedGiven > 0 || completedBorrowed > 0 {
+            Section("Completed") {
+                if completedGiven > 0 {
+                    LabeledContent("Returned to me", value: CurrencyFormatter.string(from: completedGiven))
+                }
+                if completedBorrowed > 0 {
+                    LabeledContent("Paid back", value: CurrencyFormatter.string(from: completedBorrowed))
+                }
+            }
         }
 
         let monthExpenses = monthMoneyExpenses
@@ -70,11 +86,18 @@ struct MonthSummaryView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(expense.displayTitle)
                                 .font(.body.weight(.medium))
-                            if let label = expense.moneyFlowLabel {
-                                Text(label)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                .strikethrough(expense.isMoneyCompleted, color: .secondary)
+                            HStack(spacing: 6) {
+                                if let label = expense.moneyFlowLabel {
+                                    Text(label)
+                                }
+                                if let statusLabel = expense.moneyStatusLabel {
+                                    Text("•")
+                                    Text(statusLabel)
+                                }
                             }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                         Spacer()
                         Text(CurrencyFormatter.string(from: expense.amount))

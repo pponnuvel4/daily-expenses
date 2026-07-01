@@ -46,4 +46,22 @@ enum MoneyFlow: String, Codable, CaseIterable, Identifiable {
         case .borrowed: "Money you borrowed to return later"
         }
     }
+
+    var completedStatusLabel: String {
+        switch self {
+        case .given: "Returned to me"
+        case .borrowed: "Paid back"
+        }
+    }
+
+    func markCompletedLabel(isCompleted: Bool) -> String {
+        isCompleted ? "Mark as pending" : completedActionLabel
+    }
+
+    private var completedActionLabel: String {
+        switch self {
+        case .given: "Mark returned"
+        case .borrowed: "Mark paid back"
+        }
+    }
 }

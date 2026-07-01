@@ -15,6 +15,7 @@ struct EditExpenseView: View {
     @State private var priceEntryMode: ExpensePriceEntryMode
     @State private var category: ExpenseCategory
     @State private var moneyFlow: MoneyFlow
+    @State private var moneyCompleted: Bool
     @State private var note: String
     @FocusState private var focusedField: Field?
 
@@ -49,6 +50,7 @@ struct EditExpenseView: View {
         _priceEntryMode = State(initialValue: expense.quantity == nil ? .total : .ratePerUnit)
         _category = State(initialValue: lockedCategory ?? expense.category)
         _moneyFlow = State(initialValue: expense.resolvedMoneyFlow ?? .given)
+        _moneyCompleted = State(initialValue: expense.isMoneyCompleted)
         _note = State(initialValue: expense.note ?? "")
     }
 
@@ -99,8 +101,16 @@ struct EditExpenseView: View {
                     TextField("Note (optional)", text: $note)
                         .focused($focusedField, equals: .note)
                 }
+
+                if isMoneyScope {
+                    Section {
+                        Toggle(moneyFlow.completedStatusLabel, isOn: $moneyCompleted)
+                    } footer: {
+                        Text(moneyCompleted ? completedFooterText : pendingFooterText)
+                    }
+                }
             }
-            .navigationTitle("Edit Expense")
+            .navigationTitle(isMoneyScope ? "Edit Money Entry" : "Edit Expense")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -135,8 +145,23 @@ struct EditExpenseView: View {
         updated.unit = showsQuantityFields ? QuantityFormatter.normalizedUnit(unit) : nil
         updated.category = lockedCategory ?? category
         updated.moneyFlow = isMoneyScope ? moneyFlow : nil
+        updated.moneyCompleted = isMoneyScope ? moneyCompleted : nil
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote
         onSave(updated)
         dismiss()
+    }
+
+    private var pendingFooterText: String {
+        switch moneyFlow {
+        case .given: "Turn this on when they return the money to you."
+        case .borrowed: "Turn this on after you pay the money back."
+        }
+    }
+
+    private var completedFooterText: String {
+        switch moneyFlow {
+        case .given: "Marked as returned to you."
+        case .borrowed: "Marked as paid back."
+        }
     }
 }

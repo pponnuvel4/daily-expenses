@@ -72,6 +72,7 @@ enum ExpenseReportPDFGenerator {
         var detail = "\(dateText) • \(expense.category.title)"
         if let moneyFlow = expense.resolvedMoneyFlow {
             detail += " • \(moneyFlow.title)"
+            detail += expense.isMoneyCompleted ? " • \(moneyFlow.completedStatusLabel)" : " • Pending"
         }
         if let quantityLabel = expense.quantityLabel {
             detail += " • \(quantityLabel)"
