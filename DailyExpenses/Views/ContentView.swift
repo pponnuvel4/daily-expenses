@@ -35,6 +35,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Daily Expenses")
+            .navigationSubtitle(appVersionLabel)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
@@ -90,19 +91,17 @@ struct ContentView: View {
                 .onSubmit { focusedField = .amount }
                 .onTapGesture { focusedField = .title }
 
-            HStack(spacing: 10) {
-                TextField("Amount", text: $newAmountText)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($focusedField, equals: .amount)
+            TextField("Amount", text: $newAmountText)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(.roundedBorder)
+                .focused($focusedField, equals: .amount)
 
-                Picker("Category", selection: $newCategory) {
-                    ForEach(ExpenseCategory.allCases) { category in
-                        Label(category.title, systemImage: category.icon).tag(category)
-                    }
+            Picker("Category", selection: $newCategory) {
+                ForEach(ExpenseCategory.allCases) { category in
+                    Label(category.title, systemImage: category.icon).tag(category)
                 }
-                .pickerStyle(.menu)
             }
+            .pickerStyle(.menu)
 
             TextField("Note (optional)", text: $newNote)
                 .textFieldStyle(.roundedBorder)
@@ -235,6 +234,12 @@ struct ContentView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    private var appVersionLabel: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        return "Version \(version) (\(build))"
     }
 
     private var parsedAmount: Double? {
