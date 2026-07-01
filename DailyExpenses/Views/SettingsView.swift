@@ -45,7 +45,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    LabeledContent("Version", value: "2.3 (25)")
+                    LabeledContent("Version", value: "2.4 (26)")
                     LabeledContent("Total entries", value: "\(store.expenses.count)")
                 } header: {
                     Text("About")

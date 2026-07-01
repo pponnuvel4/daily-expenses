@@ -3,7 +3,6 @@ import SwiftUI
 struct TripPlannerView: View {
     @Environment(ExpenseStore.self) private var store
     @State private var showAddTrip = false
-    @State private var tripToEdit: TripPlan?
 
     var body: some View {
         NavigationStack {
@@ -21,7 +20,7 @@ struct TripPlannerView: View {
                         ContentUnavailableView {
                             Label("No trips yet", systemImage: "suitcase.fill")
                         } description: {
-                            Text("Plan a trip, enter the total cost and number of people, and see each person's equal share.")
+                            Text("Create a trip, add spending entries, and see each person's equal share.")
                         } actions: {
                             Button("Plan a trip") {
                                 showAddTrip = true
@@ -31,8 +30,10 @@ struct TripPlannerView: View {
                         .listRowBackground(Color.clear)
                     } else {
                         ForEach(store.trips) { trip in
-                            TripPlanRowView(trip: trip) {
-                                tripToEdit = trip
+                            NavigationLink {
+                                TripDetailView(tripID: trip.id)
+                            } label: {
+                                TripPlanRowView(trip: trip)
                             }
                         }
                         .onDelete { offsets in
@@ -58,9 +59,6 @@ struct TripPlannerView: View {
             .sheet(isPresented: $showAddTrip) {
                 AddTripPlanView()
             }
-            .sheet(item: $tripToEdit) { trip in
-                EditTripPlanView(trip: trip)
-            }
         }
     }
 
@@ -78,24 +76,11 @@ struct TripPlannerView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Total planned")
+                    Text("Total spent")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text(CurrencyFormatter.string(from: store.tripsTotalAmount))
                         .font(.title3.weight(.bold))
-                }
-            }
-
-            if store.trips.count == 1, let trip = store.trips.first {
-                Divider()
-                HStack {
-                    Text("Each person pays")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(CurrencyFormatter.string(from: trip.sharePerPerson))
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(.cyan)
                 }
             }
         }
@@ -105,52 +90,52 @@ struct TripPlannerView: View {
 
 private struct TripPlanRowView: View {
     let trip: TripPlan
-    let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 12) {
-                Image(systemName: "suitcase.fill")
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color.cyan.gradient, in: Circle())
+        HStack(spacing: 12) {
+            Image(systemName: "suitcase.fill")
+                .font(.title3)
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(Color.cyan.gradient, in: Circle())
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(trip.displayName)
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(.primary)
-                    Text("\(trip.peopleCount) people • Total \(CurrencyFormatter.string(from: trip.totalAmount))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let note = trip.note, !note.isEmpty {
-                        Text(note)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                    }
-                }
-
-                Spacer(minLength: 8)
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(CurrencyFormatter.string(from: trip.sharePerPerson))
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.cyan)
-                    Text("each")
+            VStack(alignment: .leading, spacing: 4) {
+                Text(trip.displayName)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(.primary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let note = trip.note, !note.isEmpty {
+                    Text(note)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
                 }
             }
-            .padding(.vertical, 4)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .contextMenu {
-            ShareLink(item: trip.splitSummary) {
-                Label("Share split", systemImage: "square.and.arrow.up")
+
+            Spacer(minLength: 8)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(CurrencyFormatter.string(from: trip.sharePerPerson))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.cyan)
+                Text("each")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
+        .padding(.vertical, 4)
+    }
+
+    private var subtitle: String {
+        if trip.entryCount > 0 {
+            return "\(trip.peopleCount) people • \(trip.entryCount) entries • \(CurrencyFormatter.string(from: trip.totalAmount))"
+        }
+        if trip.totalAmount > 0 {
+            return "\(trip.peopleCount) people • Total \(CurrencyFormatter.string(from: trip.totalAmount))"
+        }
+        return "\(trip.peopleCount) people • No spending yet"
     }
 }
 

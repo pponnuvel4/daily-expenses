@@ -105,6 +105,7 @@ final class StoredTrip {
     var peopleCount: Int
     var note: String?
     var date: Date
+    var entriesJSON: Data?
 
     init(from trip: TripPlan) {
         id = trip.id
@@ -113,6 +114,7 @@ final class StoredTrip {
         peopleCount = trip.peopleCount
         note = trip.note
         date = trip.date
+        entriesJSON = Self.encodeEntries(trip.entries)
     }
 
     func update(from trip: TripPlan) {
@@ -121,17 +123,29 @@ final class StoredTrip {
         peopleCount = trip.peopleCount
         note = trip.note
         date = trip.date
+        entriesJSON = Self.encodeEntries(trip.entries)
     }
 
     func toTrip() -> TripPlan {
-        TripPlan(
+        let entries = Self.decodeEntries(from: entriesJSON)
+        return TripPlan(
             id: id,
             name: name,
-            totalAmount: totalAmount,
             peopleCount: peopleCount,
             note: note,
-            date: date
+            date: date,
+            entries: entries,
+            legacyTotalAmount: entries.isEmpty ? totalAmount : 0
         )
+    }
+
+    private static func encodeEntries(_ entries: [TripExpenseEntry]) -> Data? {
+        try? JSONEncoder().encode(entries)
+    }
+
+    private static func decodeEntries(from data: Data?) -> [TripExpenseEntry] {
+        guard let data else { return [] }
+        return (try? JSONDecoder().decode([TripExpenseEntry].self, from: data)) ?? []
     }
 }
 

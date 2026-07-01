@@ -8,7 +8,7 @@ struct ExpenseAppData: Codable {
     var settings: AppSettings = AppSettings()
 
     var recordCount: Int {
-        expenses.count + favorites.count + trips.count
+        expenses.count + favorites.count + trips.count + trips.reduce(0) { $0 + $1.entries.count }
     }
 }
 

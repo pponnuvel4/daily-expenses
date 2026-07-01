@@ -372,19 +372,49 @@ final class ExpenseStore {
         trips.reduce(0) { $0 + $1.totalAmount }
     }
 
-    func addTrip(name: String, totalAmount: Double, peopleCount: Int, note: String?) {
+    func addTrip(name: String, peopleCount: Int, note: String?) {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard totalAmount > 0 else { return }
 
         let trip = TripPlan(
             name: trimmedName,
-            totalAmount: totalAmount,
             peopleCount: peopleCount,
             note: trimmedNote?.isEmpty == true ? nil : trimmedNote
         )
         trips.insert(trip, at: 0)
         persist()
+    }
+
+    func addTripEntry(to tripID: UUID, title: String, amount: Double, note: String?) {
+        guard amount > 0,
+              let index = trips.firstIndex(where: { $0.id == tripID }) else { return }
+
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let entry = TripExpenseEntry(
+            title: trimmedTitle,
+            amount: amount,
+            note: trimmedNote?.isEmpty == true ? nil : trimmedNote
+        )
+        trips[index].entries.insert(entry, at: 0)
+        persist()
+    }
+
+    func updateTripEntry(in tripID: UUID, entry: TripExpenseEntry) {
+        guard let tripIndex = trips.firstIndex(where: { $0.id == tripID }),
+              let entryIndex = trips[tripIndex].entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        trips[tripIndex].entries[entryIndex] = entry
+        persist()
+    }
+
+    func deleteTripEntries(tripID: UUID, at offsets: IndexSet) {
+        guard let index = trips.firstIndex(where: { $0.id == tripID }) else { return }
+        trips[index].entries.remove(atOffsets: offsets)
+        persist()
+    }
+
+    func trip(with id: UUID) -> TripPlan? {
+        trips.first { $0.id == id }
     }
 
     func updateTrip(_ trip: TripPlan) {

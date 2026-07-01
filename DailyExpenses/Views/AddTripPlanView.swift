@@ -5,39 +5,18 @@ struct AddTripPlanView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name = ""
-    @State private var amountText = ""
     @State private var peopleCount = 2
     @State private var note = ""
-
-    private var parsedAmount: Double? {
-        QuantityFormatter.parse(amountText)
-    }
-
-    private var previewShare: Double? {
-        guard let amount = parsedAmount, peopleCount > 0 else { return nil }
-        return amount / Double(peopleCount)
-    }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     TextField("Trip name", text: $name)
-                    TextField("Total amount", text: $amountText)
-                        .keyboardType(.decimalPad)
-
                     Stepper("People: \(peopleCount)", value: $peopleCount, in: 1...100)
-
                     TextField("Note (optional)", text: $note)
-                }
-
-                if let share = previewShare, let amount = parsedAmount {
-                    Section("Equal split") {
-                        LabeledContent("Total", value: CurrencyFormatter.string(from: amount))
-                        LabeledContent("People", value: "\(peopleCount)")
-                        LabeledContent("Each person pays", value: CurrencyFormatter.string(from: share))
-                            .font(.headline)
-                    }
+                } footer: {
+                    Text("After saving, add spending entries like hotel, food, and transport. The total and split are calculated automatically.")
                 }
             }
             .navigationTitle("Plan Trip")
@@ -50,17 +29,15 @@ struct AddTripPlanView: View {
                     Button("Save") {
                         saveTrip()
                     }
-                    .disabled(parsedAmount == nil)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
     }
 
     private func saveTrip() {
-        guard let amount = parsedAmount else { return }
         store.addTrip(
             name: name,
-            totalAmount: amount,
             peopleCount: peopleCount,
             note: note
         )
@@ -74,20 +51,14 @@ struct EditTripPlanView: View {
 
     let trip: TripPlan
     @State private var name: String
-    @State private var amountText: String
     @State private var peopleCount: Int
     @State private var note: String
 
     init(trip: TripPlan) {
         self.trip = trip
         _name = State(initialValue: trip.name)
-        _amountText = State(initialValue: QuantityFormatter.string(from: trip.totalAmount))
         _peopleCount = State(initialValue: trip.peopleCount)
         _note = State(initialValue: trip.note ?? "")
-    }
-
-    private var parsedAmount: Double? {
-        QuantityFormatter.parse(amountText)
     }
 
     var body: some View {
@@ -95,17 +66,21 @@ struct EditTripPlanView: View {
             Form {
                 Section {
                     TextField("Trip name", text: $name)
-                    TextField("Total amount", text: $amountText)
-                        .keyboardType(.decimalPad)
                     Stepper("People: \(peopleCount)", value: $peopleCount, in: 1...100)
                     TextField("Note (optional)", text: $note)
                 }
 
-                if let amount = parsedAmount {
-                    Section("Equal split") {
-                        LabeledContent("Each person pays", value: CurrencyFormatter.string(from: amount / Double(peopleCount)))
-                            .font(.headline)
+                Section {
+                    LabeledContent("Total spent", value: CurrencyFormatter.string(from: trip.totalAmount))
+                    LabeledContent("Each person pays", value: CurrencyFormatter.string(from: trip.totalAmount / Double(max(1, peopleCount))))
+                        .font(.headline)
+                    if trip.entryCount > 0 {
+                        LabeledContent("Spending entries", value: "\(trip.entryCount)")
                     }
+                } header: {
+                    Text("Split")
+                } footer: {
+                    Text("Edit spending entries from the trip detail screen.")
                 }
 
                 Section {
@@ -124,25 +99,30 @@ struct EditTripPlanView: View {
                     Button("Save") {
                         saveChanges()
                     }
-                    .disabled(parsedAmount == nil)
                 }
             }
         }
     }
 
     private var updatedSplitSummary: String {
-        let amount = parsedAmount ?? trip.totalAmount
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let displayName = trimmedName.isEmpty ? "Trip" : trimmedName
-        let share = amount / Double(max(1, peopleCount))
-        return "\(displayName): \(CurrencyFormatter.string(from: amount)) split among \(peopleCount) people = \(CurrencyFormatter.string(from: share)) each"
+        let share = trip.totalAmount / Double(max(1, peopleCount))
+        var summary = "\(displayName): \(CurrencyFormatter.string(from: trip.totalAmount)) split among \(peopleCount) people = \(CurrencyFormatter.string(from: share)) each"
+
+        if !trip.entries.isEmpty {
+            summary += "\n\nSpending breakdown:"
+            for entry in trip.entries {
+                summary += "\n• \(entry.displayTitle): \(CurrencyFormatter.string(from: entry.amount))"
+            }
+        }
+
+        return summary
     }
 
     private func saveChanges() {
-        guard let amount = parsedAmount else { return }
         var updated = trip
         updated.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        updated.totalAmount = amount
         updated.peopleCount = peopleCount
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote
