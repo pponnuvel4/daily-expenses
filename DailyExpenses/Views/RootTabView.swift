@@ -14,6 +14,11 @@ struct RootTabView: View {
                             Label(scope.tabTitle, systemImage: scope.tabIcon)
                         }
                 }
+
+                TripPlannerView()
+                    .tabItem {
+                        Label("Trips", systemImage: "suitcase.fill")
+                    }
             }
 
             if store.settings.isAppLockEnabled && !lockManager.isUnlocked {

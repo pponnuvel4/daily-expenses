@@ -6,6 +6,7 @@ import Observation
 final class ExpenseStore {
     private(set) var expenses: [Expense] = []
     private(set) var favorites: [FavoriteExpense] = []
+    private(set) var trips: [TripPlan] = []
     var selectedDate: Date
     var settings: AppSettings = AppSettings()
 
@@ -253,6 +254,7 @@ final class ExpenseStore {
         let restored = ExpensePersistence.recoverFromAllSources()
         expenses = restored.expenses
         favorites = restored.favorites
+        trips = restored.trips
         settings = restored.settings
         lastActiveDay = restored.lastActiveDay.map { calendar.startOfDay(for: $0) }
         persist()
@@ -264,7 +266,7 @@ final class ExpenseStore {
     }
 
     var hasRecoverableData: Bool {
-        recoverableRecordCount > expenses.count + favorites.count
+        recoverableRecordCount > expenses.count + favorites.count + trips.count
     }
 
     func updateExpense(_ expense: Expense) {
@@ -358,6 +360,36 @@ final class ExpenseStore {
         persist()
     }
 
+    var tripsTotalAmount: Double {
+        trips.reduce(0) { $0 + $1.totalAmount }
+    }
+
+    func addTrip(name: String, totalAmount: Double, peopleCount: Int, note: String?) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard totalAmount > 0 else { return }
+
+        let trip = TripPlan(
+            name: trimmedName,
+            totalAmount: totalAmount,
+            peopleCount: peopleCount,
+            note: trimmedNote?.isEmpty == true ? nil : trimmedNote
+        )
+        trips.insert(trip, at: 0)
+        persist()
+    }
+
+    func updateTrip(_ trip: TripPlan) {
+        guard let index = trips.firstIndex(where: { $0.id == trip.id }) else { return }
+        trips[index] = trip
+        persist()
+    }
+
+    func deleteTrips(at offsets: IndexSet) {
+        trips.remove(atOffsets: offsets)
+        persist()
+    }
+
     func categoryTotals(forMonthContaining date: Date, category: ExpenseCategory? = nil) -> [CategoryTotal] {
         let monthTotal = monthTotal(forMonthContaining: date, category: category)
         guard monthTotal > 0 else { return [] }
@@ -413,6 +445,7 @@ final class ExpenseStore {
         let appData = ExpensePersistence.load()
         expenses = appData.expenses
         favorites = appData.favorites
+        trips = appData.trips
         settings = appData.settings
         lastActiveDay = appData.lastActiveDay.map { calendar.startOfDay(for: $0) }
     }
@@ -422,6 +455,7 @@ final class ExpenseStore {
             ExpenseAppData(
                 expenses: expenses,
                 favorites: favorites,
+                trips: trips,
                 lastActiveDay: lastActiveDay,
                 settings: settings
             )

@@ -3,11 +3,12 @@ import Foundation
 struct ExpenseAppData: Codable {
     var expenses: [Expense] = []
     var favorites: [FavoriteExpense] = []
+    var trips: [TripPlan] = []
     var lastActiveDay: Date?
     var settings: AppSettings = AppSettings()
 
     var recordCount: Int {
-        expenses.count + favorites.count
+        expenses.count + favorites.count + trips.count
     }
 }
 

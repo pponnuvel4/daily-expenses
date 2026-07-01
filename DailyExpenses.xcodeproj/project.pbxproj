@@ -43,6 +43,9 @@
 		D10000000000000000000034 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000034 /* SettingsView.swift */; };
 		D10000000000000000000035 /* OutstandingMoneyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000035 /* OutstandingMoneyView.swift */; };
 		D10000000000000000000036 /* MonthSpendingChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000036 /* MonthSpendingChartView.swift */; };
+		D10000000000000000000037 /* TripPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000037 /* TripPlan.swift */; };
+		D10000000000000000000038 /* TripPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000038 /* TripPlannerView.swift */; };
+		D10000000000000000000039 /* AddTripPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000039 /* AddTripPlanView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
