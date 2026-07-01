@@ -1,5 +1,11 @@
 import Foundation
 
+struct ExpenseAppData: Codable {
+    var expenses: [Expense] = []
+    var favorites: [FavoriteExpense] = []
+    var lastActiveDay: Date?
+}
+
 enum ExpensePersistence {
     private static let fileName = "daily-expenses-data.json"
     private static let appDataKey = "daily_expenses_app_data_v1"
@@ -33,7 +39,10 @@ enum ExpensePersistence {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         let data = try encoder.encode(appData)
-        try data.write(to: fileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        try data.write(
+            to: fileURL,
+            options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication] as Data.WritingOptions
+        )
     }
 
     private static func loadFromFile() -> ExpenseAppData? {
