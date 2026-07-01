@@ -149,6 +149,7 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "chevron.left")
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Previous day")
 
             Spacer()
@@ -156,14 +157,15 @@ struct ContentView: View {
             VStack(spacing: 2) {
                 Text(store.selectedDayTitle)
                     .font(.headline)
-                Text(store.selectedDate.formatted(date: .abbreviated, time: .omitted))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 if !store.isViewingToday {
+                    Text(store.selectedDate.formatted(date: .complete, time: .omitted))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     Button("Jump to today") {
                         store.goToToday()
                     }
                     .font(.caption.weight(.semibold))
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -174,8 +176,9 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "chevron.right")
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Next day")
-            .disabled(Calendar.current.isDateInToday(store.selectedDate))
+            .disabled(!store.canShiftForward)
         }
     }
 
