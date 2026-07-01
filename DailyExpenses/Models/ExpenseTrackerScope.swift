@@ -92,7 +92,7 @@ enum ExpenseTrackerScope: String, CaseIterable, Identifiable {
         case .daily: "Add what you spent on"
         case .groceries: "Add a grocery item for"
         case .farming: "Add a farming expense for"
-        case .money: "Record money given or collected on"
+        case .money: "Record money given or borrowed on"
         }
     }
 

@@ -71,7 +71,7 @@ struct ExpenseRowView: View {
     private var amountColor: Color {
         switch expense.resolvedMoneyFlow {
         case .given: .red
-        case .collected: .green
+        case .borrowed: .orange
         case nil: .primary
         }
     }

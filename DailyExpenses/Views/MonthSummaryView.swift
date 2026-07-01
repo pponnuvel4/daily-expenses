@@ -48,7 +48,7 @@ struct MonthSummaryView: View {
         Section {
             LabeledContent("Month", value: store.selectedMonthTitle)
             LabeledContent("Given", value: CurrencyFormatter.string(from: store.moneyGivenTotal(forMonthContaining: store.selectedDate)))
-            LabeledContent("Collected", value: CurrencyFormatter.string(from: store.moneyCollectedTotal(forMonthContaining: store.selectedDate)))
+            LabeledContent("Borrowed", value: CurrencyFormatter.string(from: store.moneyBorrowedTotal(forMonthContaining: store.selectedDate)))
             LabeledContent("Net", value: CurrencyFormatter.string(from: store.moneyNetTotal(forMonthContaining: store.selectedDate)))
                 .font(.headline)
         }
@@ -58,7 +58,7 @@ struct MonthSummaryView: View {
             ContentUnavailableView {
                 Label("No entries", systemImage: "banknote")
             } description: {
-                Text("No money given or collected this month yet.")
+                Text("No money given or borrowed this month yet.")
             }
         } else {
             Section("This month") {

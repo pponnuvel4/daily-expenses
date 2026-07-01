@@ -204,12 +204,12 @@ struct ContentView: View {
                 Spacer()
 
                 VStack(alignment: .center, spacing: 4) {
-                    Text("Collected")
+                    Text("Borrowed")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(CurrencyFormatter.string(from: store.moneyCollectedTotal(for: store.selectedDate)))
+                    Text(CurrencyFormatter.string(from: store.moneyBorrowedTotal(for: store.selectedDate)))
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.orange)
                 }
 
                 Spacer()

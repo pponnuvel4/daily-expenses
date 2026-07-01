@@ -2,28 +2,48 @@ import Foundation
 
 enum MoneyFlow: String, Codable, CaseIterable, Identifiable {
     case given
-    case collected
+    case borrowed
 
     var id: String { rawValue }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        switch value {
+        case "given":
+            self = .given
+        case "borrowed", "collected":
+            self = .borrowed
+        default:
+            self = .given
+        }
+    }
 
     var title: String {
         switch self {
         case .given: "Given"
-        case .collected: "Collected"
+        case .borrowed: "Borrowed"
         }
     }
 
     var addPrompt: String {
         switch self {
         case .given: "Who did you give money to?"
-        case .collected: "Who did you collect money from?"
+        case .borrowed: "Who did you borrow money from?"
         }
     }
 
     var listPrefix: String {
         switch self {
         case .given: "Given to"
-        case .collected: "Collected from"
+        case .borrowed: "Borrowed from"
+        }
+    }
+
+    var summaryDescription: String {
+        switch self {
+        case .given: "Money you lent or gave"
+        case .borrowed: "Money you borrowed to return later"
         }
     }
 }

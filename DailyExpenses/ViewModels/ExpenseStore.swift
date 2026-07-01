@@ -98,24 +98,24 @@ final class ExpenseStore: ObservableObject {
         moneyTotal(for: day, flow: .given)
     }
 
-    func moneyCollectedTotal(for day: Date) -> Double {
-        moneyTotal(for: day, flow: .collected)
+    func moneyBorrowedTotal(for day: Date) -> Double {
+        moneyTotal(for: day, flow: .borrowed)
     }
 
     func moneyNetTotal(for day: Date) -> Double {
-        moneyCollectedTotal(for: day) - moneyGivenTotal(for: day)
+        moneyBorrowedTotal(for: day) - moneyGivenTotal(for: day)
     }
 
     func moneyGivenTotal(forMonthContaining date: Date) -> Double {
         moneyTotal(forMonthContaining: date, flow: .given)
     }
 
-    func moneyCollectedTotal(forMonthContaining date: Date) -> Double {
-        moneyTotal(forMonthContaining: date, flow: .collected)
+    func moneyBorrowedTotal(forMonthContaining date: Date) -> Double {
+        moneyTotal(forMonthContaining: date, flow: .borrowed)
     }
 
     func moneyNetTotal(forMonthContaining date: Date) -> Double {
-        moneyCollectedTotal(forMonthContaining: date) - moneyGivenTotal(forMonthContaining: date)
+        moneyBorrowedTotal(forMonthContaining: date) - moneyGivenTotal(forMonthContaining: date)
     }
 
     private func moneyTotal(for day: Date, flow: MoneyFlow) -> Double {
