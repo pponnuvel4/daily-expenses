@@ -16,17 +16,37 @@ final class ExpenseStore: ObservableObject {
     }
 
     var expensesForSelectedDay: [Expense] {
-        expenses
-            .filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
-            .sorted { $0.date > $1.date }
+        expenses(for: selectedDate, category: nil)
     }
 
     var selectedDayTotal: Double {
-        expensesForSelectedDay.reduce(0) { $0 + $1.amount }
+        dayTotal(for: selectedDate, category: nil)
     }
 
     var monthTotal: Double {
-        totalForMonth(containing: selectedDate)
+        monthTotal(forMonthContaining: selectedDate, category: nil)
+    }
+
+    func expenses(for day: Date, category: ExpenseCategory?) -> [Expense] {
+        expenses
+            .filter { expense in
+                calendar.isDate(expense.date, inSameDayAs: day)
+                    && matchesCategory(expense.category, filter: category)
+            }
+            .sorted { $0.date > $1.date }
+    }
+
+    func dayTotal(for day: Date, category: ExpenseCategory?) -> Double {
+        expenses(for: day, category: category).reduce(0) { $0 + $1.amount }
+    }
+
+    func monthTotal(forMonthContaining date: Date, category: ExpenseCategory?) -> Double {
+        expensesForMonth(containing: date, category: category).reduce(0) { $0 + $1.amount }
+    }
+
+    func favorites(for category: ExpenseCategory?) -> [FavoriteExpense] {
+        guard let category else { return favorites }
+        return favorites.filter { $0.category == category }
     }
 
     var selectedMonthTitle: String {
@@ -132,11 +152,11 @@ final class ExpenseStore: ObservableObject {
         persist()
     }
 
-    func categoryTotals(forMonthContaining date: Date) -> [CategoryTotal] {
-        let monthTotal = totalForMonth(containing: date)
+    func categoryTotals(forMonthContaining date: Date, category: ExpenseCategory? = nil) -> [CategoryTotal] {
+        let monthTotal = monthTotal(forMonthContaining: date, category: category)
         guard monthTotal > 0 else { return [] }
 
-        let monthExpenses = expensesForMonth(containing: date)
+        let monthExpenses = expensesForMonth(containing: date, category: category)
         var amounts: [ExpenseCategory: Double] = [:]
         for expense in monthExpenses {
             amounts[expense.category, default: 0] += expense.amount
@@ -154,13 +174,33 @@ final class ExpenseStore: ObservableObject {
             .sorted { $0.amount > $1.amount }
     }
 
-    private func totalForMonth(containing date: Date) -> Double {
-        expensesForMonth(containing: date).reduce(0) { $0 + $1.amount }
+    func expensesForReport(type: ExpenseReportType, on date: Date) -> [Expense] {
+        if type.isMonthly {
+            return expensesForMonth(containing: date, category: type.categoryFilter)
+                .sorted { $0.date > $1.date }
+        }
+        return expenses(for: date, category: type.categoryFilter)
     }
 
-    private func expensesForMonth(containing date: Date) -> [Expense] {
+    func totalForReport(type: ExpenseReportType, on date: Date) -> Double {
+        if type.isMonthly {
+            return monthTotal(forMonthContaining: date, category: type.categoryFilter)
+        }
+        return dayTotal(for: date, category: type.categoryFilter)
+    }
+
+    private func expensesForMonth(containing date: Date, category: ExpenseCategory? = nil) -> [Expense] {
         guard let interval = calendar.dateInterval(of: .month, for: date) else { return [] }
-        return expenses.filter { $0.date >= interval.start && $0.date < interval.end }
+        return expenses.filter { expense in
+            expense.date >= interval.start
+                && expense.date < interval.end
+                && matchesCategory(expense.category, filter: category)
+        }
+    }
+
+    private func matchesCategory(_ category: ExpenseCategory, filter: ExpenseCategory?) -> Bool {
+        guard let filter else { return true }
+        return category == filter
     }
 
     private func load() {

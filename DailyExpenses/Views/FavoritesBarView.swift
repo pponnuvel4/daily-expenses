@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct FavoritesBarView: View {
-    @ObservedObject var store: ExpenseStore
+    let favorites: [FavoriteExpense]
+    let onAdd: (FavoriteExpense) -> Void
+    let onRemove: (FavoriteExpense) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -11,9 +13,9 @@ struct FavoritesBarView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(store.favorites) { favorite in
+                    ForEach(favorites) { favorite in
                         Button {
-                            store.addFavoriteToDay(favorite)
+                            onAdd(favorite)
                         } label: {
                             Text(favorite.displayName)
                                 .font(.caption.weight(.medium))
@@ -25,7 +27,7 @@ struct FavoritesBarView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             Button("Remove favorite", role: .destructive) {
-                                store.removeFavorite(favorite)
+                                onRemove(favorite)
                             }
                         }
                     }
