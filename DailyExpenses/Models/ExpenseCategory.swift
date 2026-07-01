@@ -14,6 +14,17 @@ enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        switch value {
+        case "moneyGiven":
+            self = .money
+        default:
+            self = ExpenseCategory(rawValue: value) ?? .other
+        }
+    }
+
     var title: String {
         switch self {
         case .food: "Food"

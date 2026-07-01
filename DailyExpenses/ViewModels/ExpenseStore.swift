@@ -249,6 +249,24 @@ final class ExpenseStore {
         persist()
     }
 
+    func restorePersistedData() -> Int {
+        let restored = ExpensePersistence.recoverFromAllSources()
+        expenses = restored.expenses
+        favorites = restored.favorites
+        settings = restored.settings
+        lastActiveDay = restored.lastActiveDay.map { calendar.startOfDay(for: $0) }
+        persist()
+        return restored.recordCount
+    }
+
+    var recoverableRecordCount: Int {
+        ExpensePersistence.peekBestData().recordCount
+    }
+
+    var hasRecoverableData: Bool {
+        recoverableRecordCount > expenses.count + favorites.count
+    }
+
     func updateExpense(_ expense: Expense) {
         guard let index = expenses.firstIndex(where: { $0.id == expense.id }) else { return }
         expenses[index] = expense

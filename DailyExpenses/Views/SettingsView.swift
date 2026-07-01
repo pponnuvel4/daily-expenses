@@ -4,6 +4,8 @@ struct SettingsView: View {
     @Environment(ExpenseStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var budgetText = ""
+    @State private var showRestoreSuccess = false
+    @State private var restoredCount = 0
 
     private var monthlySpent: Double {
         store.monthTotal(forMonthContaining: store.selectedDate, category: nil)
@@ -43,14 +45,32 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    LabeledContent("Version", value: "2.1 (21)")
+                    LabeledContent("Version", value: "2.1 (23)")
                     LabeledContent("Total entries", value: "\(store.expenses.count)")
                 } header: {
                     Text("About")
                 }
+
+                if store.hasRecoverableData {
+                    Section {
+                        Button {
+                            restoredCount = store.restorePersistedData()
+                            showRestoreSuccess = restoredCount > 0
+                        } label: {
+                            Label("Restore saved data", systemImage: "arrow.clockwise.circle")
+                        }
+                    } footer: {
+                        Text("Found \(store.recoverableRecordCount) saved entries in backup or previous storage. Tap to restore.")
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Data Restored", isPresented: $showRestoreSuccess) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Restored \(restoredCount) saved entries.")
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
