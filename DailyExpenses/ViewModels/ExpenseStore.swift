@@ -63,7 +63,14 @@ final class ExpenseStore: ObservableObject {
         return selectedDate.formatted(date: .abbreviated, time: .omitted)
     }
 
-    func addExpense(title: String, amount: Double, category: ExpenseCategory, note: String?) {
+    func addExpense(
+        title: String,
+        amount: Double,
+        category: ExpenseCategory,
+        note: String?,
+        quantity: Double? = nil,
+        unit: String? = nil
+    ) {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard amount > 0 else { return }
@@ -71,6 +78,8 @@ final class ExpenseStore: ObservableObject {
         let expense = Expense(
             title: trimmedTitle,
             amount: amount,
+            quantity: quantity,
+            unit: unit,
             category: category,
             note: trimmedNote?.isEmpty == true ? nil : trimmedNote,
             date: selectedDate
@@ -132,7 +141,13 @@ final class ExpenseStore: ObservableObject {
         }
 
         favorites.insert(
-            FavoriteExpense(title: name, amount: expense.amount, category: expense.category),
+            FavoriteExpense(
+                title: name,
+                amount: expense.amount,
+                quantity: expense.quantity,
+                unit: expense.unit,
+                category: expense.category
+            ),
             at: 0
         )
         persist()
@@ -143,7 +158,9 @@ final class ExpenseStore: ObservableObject {
             title: favorite.title,
             amount: favorite.amount,
             category: favorite.category,
-            note: nil
+            note: nil,
+            quantity: favorite.quantity,
+            unit: favorite.unit
         )
     }
 

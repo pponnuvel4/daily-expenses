@@ -23,6 +23,10 @@ struct ExpenseRowView: View {
 
                     HStack(spacing: 6) {
                         Text(expense.category.title)
+                        if let quantityLabel = expense.quantityLabel {
+                            Text("•")
+                            Text(quantityLabel)
+                        }
                         if let note = expense.note, !note.isEmpty {
                             Text("•")
                             Text(note)
@@ -31,6 +35,12 @@ struct ExpenseRowView: View {
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                    if let unitPriceLabel = expense.unitPriceLabel {
+                        Text(unitPriceLabel)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
 
                 Spacer(minLength: 8)
@@ -59,10 +69,12 @@ struct ExpenseRowView: View {
     List {
         ExpenseRowView(
             expense: Expense(
-                title: "Lunch",
-                amount: 250,
+                title: "Coconut",
+                amount: 270,
+                quantity: 6,
+                unit: "pcs",
                 category: .food,
-                note: "Office canteen"
+                note: "Market"
             )
         )
     }

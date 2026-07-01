@@ -69,8 +69,15 @@ enum ExpenseReportPDFGenerator {
         currentY = drawText(expense.displayTitle, font: .boldSystemFont(ofSize: 14), color: .black, at: currentY, width: width, margin: margin)
 
         let dateText = expense.date.formatted(date: .abbreviated, time: .omitted)
-        let detail = "\(dateText) • \(expense.category.title)"
+        var detail = "\(dateText) • \(expense.category.title)"
+        if let quantityLabel = expense.quantityLabel {
+            detail += " • \(quantityLabel)"
+        }
         currentY = drawText(detail, font: .systemFont(ofSize: 12), color: .darkGray, at: currentY + 4, width: width, margin: margin)
+
+        if let unitPriceLabel = expense.unitPriceLabel {
+            currentY = drawText(unitPriceLabel, font: .systemFont(ofSize: 12), color: .gray, at: currentY + 4, width: width, margin: margin)
+        }
 
         if let note = expense.note, !note.isEmpty {
             currentY = drawText(note, font: .systemFont(ofSize: 12), color: .gray, at: currentY + 4, width: width, margin: margin)
