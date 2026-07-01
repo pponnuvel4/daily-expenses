@@ -34,8 +34,8 @@ enum QuantityFormatter {
         return total / quantity
     }
 
-    static func amountFieldLabel(hasQuantity: Bool, unit: String?) -> String {
-        guard hasQuantity else { return "Amount (total)" }
+    static func amountFieldLabel(hasQuantity: Bool, unit: String?, preferRateLabel: Bool = false) -> String {
+        guard hasQuantity || preferRateLabel else { return "Amount (total)" }
         if let unit, !unit.isEmpty {
             return "Rate (per \(unit))"
         }
