@@ -3,6 +3,8 @@ import SwiftUI
 struct EditExpenseView: View {
     let expense: Expense
     let lockedCategory: ExpenseCategory?
+    let showsQuantityFields: Bool
+    let isMoneyScope: Bool
     let onSave: (Expense) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -12,34 +14,41 @@ struct EditExpenseView: View {
     @State private var unit: String
     @State private var priceEntryMode: ExpensePriceEntryMode
     @State private var category: ExpenseCategory
+    @State private var moneyFlow: MoneyFlow
     @State private var note: String
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
         case title
+        case amount
         case note
     }
 
     init(
         expense: Expense,
         lockedCategory: ExpenseCategory? = nil,
+        showsQuantityFields: Bool = true,
+        isMoneyScope: Bool = false,
         onSave: @escaping (Expense) -> Void
     ) {
         self.expense = expense
         self.lockedCategory = lockedCategory
+        self.showsQuantityFields = showsQuantityFields
+        self.isMoneyScope = isMoneyScope
         self.onSave = onSave
         _title = State(initialValue: expense.title)
         _priceText = State(
             initialValue: QuantityFormatter.priceTextForEdit(
                 total: expense.amount,
-                quantity: expense.quantity,
-                mode: expense.quantity == nil ? .total : .ratePerUnit
+                quantity: showsQuantityFields ? expense.quantity : nil,
+                mode: showsQuantityFields && expense.quantity != nil ? .ratePerUnit : .total
             )
         )
         _quantityText = State(initialValue: expense.quantity.map { QuantityFormatter.string(from: $0) } ?? "")
         _unit = State(initialValue: expense.unit ?? "")
         _priceEntryMode = State(initialValue: expense.quantity == nil ? .total : .ratePerUnit)
         _category = State(initialValue: lockedCategory ?? expense.category)
+        _moneyFlow = State(initialValue: expense.resolvedMoneyFlow ?? .given)
         _note = State(initialValue: expense.note ?? "")
     }
 
@@ -55,20 +64,38 @@ struct EditExpenseView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Title", text: $title)
+                    if isMoneyScope {
+                        Picker("Type", selection: $moneyFlow) {
+                            ForEach(MoneyFlow.allCases) { flow in
+                                Text(flow.title).tag(flow)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    TextField(isMoneyScope ? moneyFlow.addPrompt : "Title", text: $title)
                         .focused($focusedField, equals: .title)
-                    QuantityPriceInputSection(
-                        quantityText: $quantityText,
-                        unit: $unit,
-                        priceText: $priceText,
-                        entryMode: $priceEntryMode
-                    )
+
+                    if showsQuantityFields {
+                        QuantityPriceInputSection(
+                            quantityText: $quantityText,
+                            unit: $unit,
+                            priceText: $priceText,
+                            entryMode: $priceEntryMode
+                        )
+                    } else {
+                        TextField("Amount", text: $priceText)
+                            .keyboardType(.decimalPad)
+                            .focused($focusedField, equals: .amount)
+                    }
+
                     Picker("Category", selection: $category) {
                         ForEach(ExpenseCategory.allCases) { item in
                             Label(item.title, systemImage: item.icon).tag(item)
                         }
                     }
                     .disabled(lockedCategory != nil)
+
                     TextField("Note (optional)", text: $note)
                         .focused($focusedField, equals: .note)
                 }
@@ -96,7 +123,7 @@ struct EditExpenseView: View {
     private func save() {
         guard let price = parsedPrice else { return }
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-        let quantity = parsedQuantity
+        let quantity = showsQuantityFields ? parsedQuantity : nil
         var updated = expense
         updated.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.amount = QuantityFormatter.resolveTotal(
@@ -105,8 +132,9 @@ struct EditExpenseView: View {
             mode: quantity == nil ? .total : priceEntryMode
         )
         updated.quantity = quantity
-        updated.unit = QuantityFormatter.normalizedUnit(unit)
+        updated.unit = showsQuantityFields ? QuantityFormatter.normalizedUnit(unit) : nil
         updated.category = lockedCategory ?? category
+        updated.moneyFlow = isMoneyScope ? moneyFlow : nil
         updated.note = trimmedNote.isEmpty ? nil : trimmedNote
         onSave(updated)
         dismiss()

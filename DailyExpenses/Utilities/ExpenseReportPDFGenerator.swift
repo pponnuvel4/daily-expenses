@@ -70,6 +70,9 @@ enum ExpenseReportPDFGenerator {
 
         let dateText = expense.date.formatted(date: .abbreviated, time: .omitted)
         var detail = "\(dateText) • \(expense.category.title)"
+        if let moneyFlow = expense.resolvedMoneyFlow {
+            detail += " • \(moneyFlow.title)"
+        }
         if let quantityLabel = expense.quantityLabel {
             detail += " • \(quantityLabel)"
         }

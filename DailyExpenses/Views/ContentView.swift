@@ -35,6 +35,7 @@ struct ContentView: View {
         case .daily: .selectedDay
         case .groceries: .selectedDayGroceries
         case .farming: .selectedDayFarming
+        case .money: .selectedDayMoney
         }
     }
 
@@ -48,7 +49,11 @@ struct ContentView: View {
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
 
                 Section {
-                    summaryBanner
+                    if scope.isMoneyScope {
+                        moneySummaryBanner
+                    } else {
+                        summaryBanner
+                    }
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(scope.listBannerColor)
@@ -81,7 +86,7 @@ struct ContentView: View {
                         }
                     }
                 } header: {
-                    Text("Expenses")
+                    Text(scope.isMoneyScope ? "Entries" : "Expenses")
                 }
             }
             .listStyle(.insetGrouped)
@@ -134,7 +139,9 @@ struct ContentView: View {
             .sheet(item: $expenseToEdit) { expense in
                 EditExpenseView(
                     expense: expense,
-                    lockedCategory: scope.categoryFilter
+                    lockedCategory: scope.categoryFilter,
+                    showsQuantityFields: scope.showsQuantityFields,
+                    isMoneyScope: scope.isMoneyScope
                 ) { updated in
                     store.updateExpense(updated)
                 }
@@ -182,6 +189,54 @@ struct ContentView: View {
         }
     }
 
+    private var moneySummaryBanner: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Given")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(CurrencyFormatter.string(from: store.moneyGivenTotal(for: store.selectedDate)))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(.red)
+                }
+
+                Spacer()
+
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Collected")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(CurrencyFormatter.string(from: store.moneyCollectedTotal(for: store.selectedDate)))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(.green)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Net")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(CurrencyFormatter.string(from: store.moneyNetTotal(for: store.selectedDate)))
+                        .font(.title3.weight(.bold))
+                }
+            }
+
+            Divider()
+
+            HStack {
+                Text(store.selectedMonthTitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("Net \(CurrencyFormatter.string(from: store.moneyNetTotal(forMonthContaining: store.selectedDate)))")
+                    .font(.subheadline.weight(.semibold))
+            }
+        }
+        .padding()
+    }
+
     private var summaryBanner: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -207,11 +262,11 @@ struct ContentView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("No expenses", systemImage: scope.tabIcon)
+            Label(scope.isMoneyScope ? "No entries" : "No expenses", systemImage: scope.tabIcon)
         } description: {
             Text("\(scope.emptyStateMessage) \(store.selectedDayTitle.lowercased()).")
         } actions: {
-            Button("Add expense") {
+            Button(scope.isMoneyScope ? "Record money" : "Add expense") {
                 showAddExpense = true
             }
             .buttonStyle(.borderedProminent)

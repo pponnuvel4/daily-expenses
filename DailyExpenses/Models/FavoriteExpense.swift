@@ -7,6 +7,7 @@ struct FavoriteExpense: Identifiable, Codable, Equatable {
     var quantity: Double?
     var unit: String?
     var category: ExpenseCategory
+    var moneyFlow: MoneyFlow?
 
     init(
         id: UUID = UUID(),
@@ -14,7 +15,8 @@ struct FavoriteExpense: Identifiable, Codable, Equatable {
         amount: Double,
         quantity: Double? = nil,
         unit: String? = nil,
-        category: ExpenseCategory
+        category: ExpenseCategory,
+        moneyFlow: MoneyFlow? = nil
     ) {
         self.id = id
         self.title = title
@@ -22,6 +24,7 @@ struct FavoriteExpense: Identifiable, Codable, Equatable {
         self.quantity = quantity
         self.unit = QuantityFormatter.normalizedUnit(unit ?? "")
         self.category = category
+        self.moneyFlow = category == .money ? moneyFlow : nil
     }
 
     var displayName: String {

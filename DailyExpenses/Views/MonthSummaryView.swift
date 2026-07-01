@@ -20,42 +20,17 @@ struct MonthSummaryView: View {
         store.monthTotal(forMonthContaining: store.selectedDate, category: scope.categoryFilter)
     }
 
+    private var monthMoneyExpenses: [Expense] {
+        store.expensesForReport(type: .selectedMonthMoney, on: store.selectedDate)
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    LabeledContent("Month", value: store.selectedMonthTitle)
-                    LabeledContent("Total spent", value: CurrencyFormatter.string(from: monthTotal))
-                        .font(.headline)
-                }
-
-                if totals.isEmpty {
-                    ContentUnavailableView {
-                        Label("No expenses", systemImage: "chart.bar")
-                    } description: {
-                        Text("Nothing recorded for this month yet.")
-                    }
+                if scope.isMoneyScope {
+                    moneySummaryContent
                 } else {
-                    Section("By category") {
-                        ForEach(totals) { item in
-                            HStack(spacing: 12) {
-                                Image(systemName: item.category.icon)
-                                    .foregroundStyle(item.category.color)
-                                    .frame(width: 24)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.category.title)
-                                        .font(.body.weight(.medium))
-                                    Text("\(Int(item.percentage.rounded()))% of month")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(CurrencyFormatter.string(from: item.amount))
-                                    .font(.body.weight(.semibold))
-                            }
-                            .padding(.vertical, 2)
-                        }
-                    }
+                    standardSummaryContent
                 }
             }
             .navigationTitle(scope.monthSummaryTitle)
@@ -63,6 +38,87 @@ struct MonthSummaryView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var moneySummaryContent: some View {
+        Section {
+            LabeledContent("Month", value: store.selectedMonthTitle)
+            LabeledContent("Given", value: CurrencyFormatter.string(from: store.moneyGivenTotal(forMonthContaining: store.selectedDate)))
+            LabeledContent("Collected", value: CurrencyFormatter.string(from: store.moneyCollectedTotal(forMonthContaining: store.selectedDate)))
+            LabeledContent("Net", value: CurrencyFormatter.string(from: store.moneyNetTotal(forMonthContaining: store.selectedDate)))
+                .font(.headline)
+        }
+
+        let monthExpenses = monthMoneyExpenses
+        if monthExpenses.isEmpty {
+            ContentUnavailableView {
+                Label("No entries", systemImage: "banknote")
+            } description: {
+                Text("No money given or collected this month yet.")
+            }
+        } else {
+            Section("This month") {
+                ForEach(monthExpenses) { expense in
+                    HStack(spacing: 12) {
+                        Image(systemName: expense.category.icon)
+                            .foregroundStyle(expense.category.color)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(expense.displayTitle)
+                                .font(.body.weight(.medium))
+                            if let label = expense.moneyFlowLabel {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Text(CurrencyFormatter.string(from: expense.amount))
+                            .font(.body.weight(.semibold))
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var standardSummaryContent: some View {
+        Section {
+            LabeledContent("Month", value: store.selectedMonthTitle)
+            LabeledContent("Total spent", value: CurrencyFormatter.string(from: monthTotal))
+                .font(.headline)
+        }
+
+        if totals.isEmpty {
+            ContentUnavailableView {
+                Label("No expenses", systemImage: "chart.bar")
+            } description: {
+                Text("Nothing recorded for this month yet.")
+            }
+        } else {
+            Section("By category") {
+                ForEach(totals) { item in
+                    HStack(spacing: 12) {
+                        Image(systemName: item.category.icon)
+                            .foregroundStyle(item.category.color)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.category.title)
+                                .font(.body.weight(.medium))
+                            Text("\(Int(item.percentage.rounded()))% of month")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(CurrencyFormatter.string(from: item.amount))
+                            .font(.body.weight(.semibold))
+                    }
+                    .padding(.vertical, 2)
                 }
             }
         }

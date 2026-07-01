@@ -22,7 +22,11 @@ struct ExpenseRowView: View {
                         .foregroundStyle(.primary)
 
                     HStack(spacing: 6) {
-                        Text(expense.category.title)
+                        if let moneyFlowLabel = expense.moneyFlowLabel {
+                            Text(moneyFlowLabel)
+                        } else {
+                            Text(expense.category.title)
+                        }
                         if let quantityLabel = expense.quantityLabel {
                             Text("•")
                             Text(quantityLabel)
@@ -47,7 +51,7 @@ struct ExpenseRowView: View {
 
                 Text(CurrencyFormatter.string(from: expense.amount))
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(amountColor)
             }
             .padding(.vertical, 4)
             .contentShape(Rectangle())
@@ -61,6 +65,14 @@ struct ExpenseRowView: View {
                     Label("Add to favorites", systemImage: "star")
                 }
             }
+        }
+    }
+
+    private var amountColor: Color {
+        switch expense.resolvedMoneyFlow {
+        case .given: .red
+        case .collected: .green
+        case nil: .primary
         }
     }
 }

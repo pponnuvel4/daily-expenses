@@ -11,11 +11,13 @@ struct AddExpenseView: View {
     @State private var unit = ""
     @State private var priceEntryMode: ExpensePriceEntryMode = .ratePerUnit
     @State private var category: ExpenseCategory
+    @State private var moneyFlow: MoneyFlow = .given
     @State private var note = ""
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
         case title
+        case amount
         case note
     }
 
@@ -38,14 +40,31 @@ struct AddExpenseView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField(scope.addPrompt, text: $title)
+                    if scope.isMoneyScope {
+                        Picker("Type", selection: $moneyFlow) {
+                            ForEach(MoneyFlow.allCases) { flow in
+                                Text(flow.title).tag(flow)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    TextField(scope.isMoneyScope ? moneyFlow.addPrompt : scope.addPrompt, text: $title)
                         .focused($focusedField, equals: .title)
-                    QuantityPriceInputSection(
-                        quantityText: $quantityText,
-                        unit: $unit,
-                        priceText: $priceText,
-                        entryMode: $priceEntryMode
-                    )
+
+                    if scope.showsQuantityFields {
+                        QuantityPriceInputSection(
+                            quantityText: $quantityText,
+                            unit: $unit,
+                            priceText: $priceText,
+                            entryMode: $priceEntryMode
+                        )
+                    } else {
+                        TextField("Amount", text: $priceText)
+                            .keyboardType(.decimalPad)
+                            .focused($focusedField, equals: .amount)
+                    }
+
                     if scope.showsCategoryPicker {
                         Picker("Category", selection: $category) {
                             ForEach(ExpenseCategory.allCases) { item in
@@ -53,7 +72,8 @@ struct AddExpenseView: View {
                             }
                         }
                     }
-                    TextField("Note (optional)", text: $note)
+
+                    TextField(scope.notePlaceholder, text: $note)
                         .focused($focusedField, equals: .note)
                 }
             }
@@ -79,7 +99,7 @@ struct AddExpenseView: View {
 
     private func addExpense() {
         guard let price = parsedPrice else { return }
-        let quantity = parsedQuantity
+        let quantity = scope.showsQuantityFields ? parsedQuantity : nil
         let total = QuantityFormatter.resolveTotal(
             price: price,
             quantity: quantity,
@@ -92,7 +112,8 @@ struct AddExpenseView: View {
             category: scope.showsCategoryPicker ? category : scope.defaultCategory,
             note: note,
             quantity: quantity,
-            unit: QuantityFormatter.normalizedUnit(unit)
+            unit: scope.showsQuantityFields ? QuantityFormatter.normalizedUnit(unit) : nil,
+            moneyFlow: scope.isMoneyScope ? moneyFlow : nil
         )
         dismiss()
     }

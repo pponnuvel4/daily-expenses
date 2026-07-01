@@ -73,7 +73,8 @@ final class ExpenseStore: ObservableObject {
         category: ExpenseCategory,
         note: String?,
         quantity: Double? = nil,
-        unit: String? = nil
+        unit: String? = nil,
+        moneyFlow: MoneyFlow? = nil
     ) {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedNote = note?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -85,11 +86,48 @@ final class ExpenseStore: ObservableObject {
             quantity: quantity,
             unit: unit,
             category: category,
+            moneyFlow: moneyFlow,
             note: trimmedNote?.isEmpty == true ? nil : trimmedNote,
             date: selectedDate
         )
         expenses.insert(expense, at: 0)
         persist()
+    }
+
+    func moneyGivenTotal(for day: Date) -> Double {
+        moneyTotal(for: day, flow: .given)
+    }
+
+    func moneyCollectedTotal(for day: Date) -> Double {
+        moneyTotal(for: day, flow: .collected)
+    }
+
+    func moneyNetTotal(for day: Date) -> Double {
+        moneyCollectedTotal(for: day) - moneyGivenTotal(for: day)
+    }
+
+    func moneyGivenTotal(forMonthContaining date: Date) -> Double {
+        moneyTotal(forMonthContaining: date, flow: .given)
+    }
+
+    func moneyCollectedTotal(forMonthContaining date: Date) -> Double {
+        moneyTotal(forMonthContaining: date, flow: .collected)
+    }
+
+    func moneyNetTotal(forMonthContaining date: Date) -> Double {
+        moneyCollectedTotal(forMonthContaining: date) - moneyGivenTotal(forMonthContaining: date)
+    }
+
+    private func moneyTotal(for day: Date, flow: MoneyFlow) -> Double {
+        expenses(for: day, category: .money)
+            .filter { $0.resolvedMoneyFlow == flow }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private func moneyTotal(forMonthContaining date: Date, flow: MoneyFlow) -> Double {
+        expensesForMonth(containing: date, category: .money)
+            .filter { $0.resolvedMoneyFlow == flow }
+            .reduce(0) { $0 + $1.amount }
     }
 
     func updateExpense(_ expense: Expense) {
@@ -158,7 +196,8 @@ final class ExpenseStore: ObservableObject {
                 amount: expense.amount,
                 quantity: expense.quantity,
                 unit: expense.unit,
-                category: expense.category
+                category: expense.category,
+                moneyFlow: expense.moneyFlow
             ),
             at: 0
         )
@@ -172,7 +211,8 @@ final class ExpenseStore: ObservableObject {
             category: favorite.category,
             note: nil,
             quantity: favorite.quantity,
-            unit: favorite.unit
+            unit: favorite.unit,
+            moneyFlow: favorite.moneyFlow
         )
     }
 
