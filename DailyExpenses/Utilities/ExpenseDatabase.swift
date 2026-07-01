@@ -114,8 +114,9 @@ final class ExpenseDatabase {
     }
 
     private func fetchAppState() -> StoredAppState? {
+        let defaultID = StoredAppState.defaultID
         var descriptor = FetchDescriptor<StoredAppState>(
-            predicate: #Predicate { $0.singletonID == StoredAppState.defaultID }
+            predicate: #Predicate { $0.singletonID == defaultID }
         )
         descriptor.fetchLimit = 1
         return try? context.fetch(descriptor).first
